@@ -198,12 +198,24 @@ If you encounter any other limitations, please consider [opening an issue](https
 
 We have many ideas for making RepoLiner even better. Contributions to these features are highly welcome!
 
+- [x] **Optimized I/O Architecture**
+  - Resolved the "Sequential I/O" bottleneck by moving the output file handle outside the main loop. The script now maintains a single open connection to the destination file throughout the scanning process, drastically reducing disk overhead in large repositories.
+- [x] **Dynamic Target Pathing**
+
+  - Eliminated "Static Pathing" by integrating `argparse`. The tool no longer needs to be physically located in the project root; it now accepts a `target_directory` argument, allowing it to act as a standalone scanner for external folders.
+
+- [x] **Automated Recursion Protection**
+
+  - Fixed the "Self-Eating Snake" risk by decoupling the output location from the scan target. Output is now routed to a dedicated, automatically ignored `/output/` folder with timestamped filenames, preventing logic loops and file bloat.
+
 - [ ] **External Configuration File (`config.yml`)**
 
   - Move all settings from the Python script to a user-friendly `config.yml` file. This will allow users to customize RepoLiner without ever touching the source code, making updates easier.
 
 - [ ] **Modular Output Architecture:**
+
   - Refactor the core logic to be more extensible. Create a main "engine" that scans files and then passes the data to pluggable "formatters" (e.g., `format_markdown.py`, `format_html.py`), making it easy to add new output types without duplicating code.
+
 - [ ] **Customizable File Ordering:**
 
   - Allow users to define the order of files in the output. This could support both algorithmic sorting (e.g., alphabetical, by directory depth) and a user-defined sequence in the `config.yml` file to create a more logical, story-like output.
@@ -213,7 +225,9 @@ We have many ideas for making RepoLiner even better. Contributions to these feat
   - Generate a clickable Table of Contents at the top of the output file, with links pointing to each merged file's section.
 
 - [ ] **Additional Output Formats**
+
   - Add support for different output types, such as a single plain `.txt` file or a formatted HTML document with syntax highlighting.
+
 - [ ] **Pre-flight Summary**
 
   - Before merging, display a summary of the files and file types found and ask the user for confirmation to proceed. This will help prevent accidental scans of the wrong directory.
