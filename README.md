@@ -1,71 +1,205 @@
-# Script Merger 🚀
+# RepoLiner
 
-A comprehensive Python utility suite designed to recursively traverse directory structures to find, read, and consolidate source code and scripts into a single, unified document.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-This repository provides two specialized implementations tailored for different strategic outcomes: **Raw Text Analysis** and **Formatted Documentation**.
+**RepoLiner** is a self-contained utility that scans a project directory and consolidates all specified source code files into a single, well-formatted Markdown file. It's designed for developers, auditors, and AI enthusiasts who need a complete, flat representation of a codebase for review, archival, or analysis.
 
----
+## Table of Contents
 
-### Context
+- [1. About The Project](#1-about-the-project)
+- [2. Key Features](#2-key-features)
+- [3. Getting Started (One-Time Setup)](#3-getting-started-one-time-setup)
+  - [Method A: Easy Installer (Windows Only)](#method-a-easy-installer-windows-only)
+  - [Method B: Manual Installation (All Platforms)](#method-b-manual-installation-all-platforms)
+- [4. How to Use RepoLiner](#4-how-to-use-repoliner)
+  - [Method A: Interactive Mode (Recommended)](#method-a-interactive-mode-recommended)
+  - [Method B: Command-Line Mode (Advanced)](#method-b-command-line-mode-advanced)
+- [5. The Output](#5-the-output)
+- [6. Configuration (Optional)](#6-configuration-optional)
+- [7. Project Structure](#7-project-structure)
+- [8. Contributions](#8-contributions)
+- [9. License](#9-license)
 
-Developed in collaboration with **Gemini**, this tool creates a comprehensive snapshot of a project's codebase while implementing safeguards against infinite loops and "output pollution."
+## 1. About The Project
 
-- **LLM Context Injection**: Feeding entire codebases into Large Language Models for better reasoning.
-- **Technical Documentation**: Creating a single searchable file for security audits or code reviews.
-- **Archival**: Preserving a flat-file version of a project state for long-term storage.
+Whether you're preparing for a code audit, onboarding a new developer, or feeding a codebase into a Large Language Model (LLM), it's incredibly useful to have an entire project's source code in one file. RepoLiner automates this process.
 
----
+It recursively scans a target directory, finds all relevant files, and merges them into a single Markdown document. Each file's content is neatly placed within a fenced code block, complete with the correct language identifier for syntax highlighting.
 
-## 📂 Project Structure
+## 2. Key Features
 
-This repository is organized by the desired output format:
+- **One-Click Setup:** Includes automated scripts to install all dependencies on Windows.
+- **User-Friendly:** Run interactively via a simple batch file—no command-line expertise needed.
+- **Self-Contained Output:** All generated reports are saved in RepoLiner's `output/` folder, keeping your projects clean.
+- **Organized & Timestamped:** Output files are automatically named with the project's folder name and a timestamp, preventing overwrites.
+- **Intelligent Scanning:** Automatically ignores common non-source directories like `.git`, `node_modules`, and virtual environments.
+- **Syntax Highlighting:** Adds language identifiers to Markdown code blocks for improved readability.
+- **Customizable:** Easily configure which file types to include or which directories to ignore.
 
-1. **[Merge to Txt](https://www.google.com/search?q=./script/merge_to_txt/)**: The core engine. Generates a plain `.txt` file using visual separators. Ideal for raw data injection into LLMs.
-2. **[Merge to Markdown](https://www.google.com/search?q=./script/merge_to_md/)**: The evolved engine. Generates a `.md` file with fenced code blocks and language-specific syntax highlighting. Ideal for human readability and professional documentation.
+## 3. Getting Started (One-Time Setup)
 
----
+Follow these simple steps to get RepoLiner ready. You only need to do this once.
 
-## 🛠 Core Principles
+### Download and Unzip RepoLiner
 
-- **Recursive Discovery**: Penetrates every subfolder within the target directory to ensure no nested logic is missed.
-- **Extension Filtering**: Utilizes a whitelist (e.g., `.py`, `.js`, `.sh`, `.yaml`, `.sql`) to process only relevant source files.
-- **Exclusion Logic**: Implements an `ignore_files` list and "dot-folder" skipping to prevent self-processing or sensitive data inclusion.
-- **Encoding Resilience**: Uses `utf-8` with `errors="ignore"` to handle diverse character sets without execution crashes.
-- **Structured Output**: Delimits contents with clear file path headers for maximum traceability.
+- Go to the [Releases page](https://github.com/davidtiberias/RepoLiner/releases) of this repository.
+- Download the `Source code (zip)` file from the latest release.
+- Unzip the folder to a convenient location (e.g., `C:\Tools\RepoLiner`).
+- Then, choose **one** of the following setup methods.
 
----
+### Method A: Easy Installer (Windows Only)
 
-## ⚙️ How to Use
+This is the recommended method for Windows users.
 
-1. **Select** your preferred format from the `/script/` directory.
-2. **Place** the chosen script in the root folder of the project to be merged.
-3. **Run** the script:
+1.  **Run the Miniconda Installer**
 
-```bash
-# For Text Output
-python merge_to_txt.py
+    - Inside the RepoLiner folder, double-click on `1-install-miniconda.bat`.
+    - This will automatically download and install a private version of Python/Conda for you. It does not require admin rights and will not interfere with other programs. Wait for it to complete.
 
-# For Markdown Output
-python merge_to_md.py
+2.  **Create the Project Environment**
+
+    - Once Step 2 is done, double-click on `2-create-environment.bat`.
+    - This script sets up RepoLiner's specific dependencies.
+
+3.  **Install Dependencies**
+    - Finally, double-click on `3-install-dependencies-pip.bat`.
+    - This installs all the necessary Python tools like Flake8 and Black into the environment.
+
+### Method B: Manual Installation (All Platforms)
+
+Use this method if you are on macOS/Linux or are an advanced Windows user who wants to manage Conda manually.
+
+1.  **Prerequisite:** Ensure you have [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or Anaconda installed.
+2.  **Create the Environment:** Open your terminal or command prompt, navigate to the RepoLiner directory, and run the following command:
+    ```bash
+    # cd /path/to/RepoLiner
+    conda env create -f environment.yml
+    ```
+3.  **Activate the Environment:** Before installing dependencies, you must activate the newly created environment.
+
+    ```bash
+    conda activate repoliner-env
+    ```
+
+    _You must activate this environment every time you wish to work on the project._
+
+4.  **Install Dependencies:** With the environment active, install all required Python packages using pip and the `requirements.txt` file.
+
+**Setup is now complete!** You are ready to use the tool.
+
+## 4. How to Use RepoLiner
+
+You can run RepoLiner in two ways.
+
+### Method A: Interactive Mode (Recommended)
+
+This is the easiest way to use the tool.
+
+1.  Navigate to your `RepoLiner` folder.
+2.  Double-click the **`launch.bat`** file.
+3.  A command window will open and prompt you to enter the path to the project you want to scan.
+4.  Paste the full directory path into the window and press `Enter`.
+5.  RepoLiner will process the project. Once complete, you can find the output file in the `output` folder.
+
+### Method B: Command-Line Mode (Advanced)
+
+This method is useful for automation or if you prefer using the terminal.
+
+1.  Open a command prompt or terminal.
+2.  Run the `launch.bat` script with the target directory path as an argument. Make sure to use quotes if the path contains spaces.
+
+    **Example:**
+
+    ```bash
+    C:\Tools\RepoLiner\launch.bat "D:\Path\To\Your Project"
+    ```
+
+3.  The script will run directly without prompting for input. The output will be saved in the `output` folder.
+
+## 5. The Output
+
+- **Location:** All merged files are saved inside the `RepoLiner/output/` directory.
+- **Filename Format:** The output file is automatically named using the pattern: `[ProjectFolderName] [YYYY-MM-DD HH-MM-SS].md`.
+  - _Example:_ `MyWebApp 2025-12-01 14-30-56.md`
+
+## 6. Configuration (Optional)
+
+You can customize RepoLiner's behavior by editing the `CONFIG` dictionary at the top of the `scripts/merge_script.py` file.
+
+- **Add a file type:** Add a new entry to the `lang_map` (e.g., `".c": "c",`).
+- **Ignore a directory:** Add the folder name to the `ignore_dirs` list (e.g., `"dist",`).
+- **Ignore a file:** Add the filename to the `ignore_files` list.
+
+## 7. Project Structure
 
 ```
+RepoLiner/
+├── .gitignore                  # Files to be ignored by Git
+├── .flake8                     # Flake8 rules
+├── .pre-commit-config.yaml     # Pre-commit hook definitions
+├── LICENSE                     # Project license
+├── README.md                   # This documentation file
+├── CONTRIBUTING.md             # The contribution guidelines eventho i am not really stick to it ehe
+│
+├── environment.yml             # (Setup) Project dependencies
+├── 0-initialize-git-repo.bat   # (Setup for Contributors)
+├── 1-install-miniconda.bat     # (Setup) Installs Miniconda
+├── 2-create-environment.bat    # (Setup) Creates the environment
+├── 3-install-dependencies-pip.bat # (Setup) Installs dependencies
+├── 4-run-quality-checks.bat    # (Utility)
+│
+├── launch.bat                  # The file you run to use the tool
+├── output/                     # All your merged reports are saved here
+│
+└── scripts/
+    └── merge_script.py         # The core Python logic
+```
 
-4. **Result**: Find your consolidated file (`merged_scripts.txt` or `merged_scripts.md`) in the same directory.
+## 8. Contributions
 
----
+### Contributing Guidelines
 
-## ⚠️ Current Limitations (V1.1.0)
+Contributions are welcome! Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-Strategic honesty is at the core of this project. Be aware of the following architectural debt:
+Please open an [**Github Issue**](https://github.com/davidtiberias/RepoLiner/issues) first to discuss what you would like to change or add.
 
-- **I/O Overhead**: The current logic opens and closes the output file for every match. While stable, this is less efficient for massive repositories.
-- **Recursive Risk**: If the `output_filename` is changed without updating the `ignore_files` list, the script may attempt to read its own output.
-- **Static Pathing**: Currently optimized for local execution via `os.walk(".")`.
+We have a detailed guide to help you get started. Please see our [**Contributing Guidelines**](CONTRIBUTING.md) for information on how to:
 
----
+- Report bugs and request features
+- Set up your development environment
+- Submit a high-quality Pull Request
 
-## 🤝 Contribution
+### Future Plans / Roadmap
 
-This is an evolving tool. If there is a way to optimize the I/O pattern, automate the exclusion logic, or add dynamic path arguments, feel free to open a Pull Request in the respective script directory.
+We have many ideas for making RepoLiner even better. Contributions to these features are highly welcome!
 
-Would the user like me to finalize the **`script/merge_to_txt/README.md`** to ensure it mirrors this new structure perfectly?
+- [ ] **External Configuration File (`config.yml`)**
+
+  - Move all settings from the Python script to a user-friendly `config.yml` file. This will allow users to customize RepoLiner without ever touching the source code, making updates easier.
+
+- [ ] **Modular Output Architecture:**
+  - Refactor the core logic to be more extensible. Create a main "engine" that scans files and then passes the data to pluggable "formatters" (e.g., `format_markdown.py`, `format_html.py`), making it easy to add new output types without duplicating code.
+- [ ] **Customizable File Ordering:**
+
+  - Allow users to define the order of files in the output. This could support both algorithmic sorting (e.g., alphabetical, by directory depth) and a user-defined sequence in the `config.yml` file to create a more logical, story-like output.
+
+- [ ] **Automatic Table of Contents**
+
+  - Generate a clickable Table of Contents at the top of the output file, with links pointing to each merged file's section.
+
+- [ ] **Additional Output Formats**
+  - Add support for different output types, such as a single plain `.txt` file or a formatted HTML document with syntax highlighting.
+- [ ] **Pre-flight Summary**
+
+  - Before merging, display a summary of the files and file types found and ask the user for confirmation to proceed. This will help prevent accidental scans of the wrong directory.
+
+- [ ] **Advanced Filtering with Glob Patterns**
+  - Implement more granular control over file selection, allowing users to include/exclude files based on glob patterns (e.g., `src/**/*.py`, `!**/*_test.py`).
+- [ ] **Comprehensive Testing Suite:**
+  - Create a `tests/` directory containing a sample project (a "benchmark dataset") and expected output files. This will allow contributors to verify their changes do not break existing functionality and ensure consistent results.
+- [ ] **Cross-Platform Shell Scripts**
+  - Create `setup.sh` and `launch.sh` scripts to provide a first-class, automated user experience for macOS and Linux users, similar to the `.bat` files for Windows.
+
+## 9. License
+
+Distributed under the MIT License. See `LICENSE` for more information.

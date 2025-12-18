@@ -1,0 +1,14 @@
+# ----------------------------------------------------
+# Development & Code Quality Dependencies for RepoLiner
+# ----------------------------------------------------
+# Install these using: pip install -r requirements.txt
+# ----------------------------------------------------
+
+# For code style consistency and auto-formatting
+black
+
+# For code quality and error checking (linter)
+flake8
+
+# For automating quality checks before commits
+pre-commit
