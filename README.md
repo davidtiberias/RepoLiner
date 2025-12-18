@@ -1,5 +1,3 @@
-## `main/README.md`
-
 # Script Merger 🚀
 
 A comprehensive Python utility suite designed to recursively traverse directory structures to find, read, and consolidate source code and scripts into a single, unified document.
