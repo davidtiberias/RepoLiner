@@ -55,7 +55,7 @@ This release transitioned RepoLiner from a simple script into a proper, document
 
 ---
 
-## [1.0.0] - 2025-12-18
+## [1.0.0] - 2025-06-14
 
 The initial release of RepoLiner.
 
