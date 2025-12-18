@@ -169,6 +169,31 @@ We have a detailed guide to help you get started. Please see our [**Contributing
 - Set up your development environment
 - Submit a high-quality Pull Request
 
+### Known Limitations and Considerations (v1.2.0)
+
+In the spirit of transparency, it's important to be aware of the project's current limitations and design choices. This helps users understand what the tool is (and isn't) and provides a clear path for future improvements.
+
+- **Primarily Windows-Focused Setup**
+
+  - The one-click setup process is built around Windows batch scripts (`.bat`). While the core Python script is cross-platform, users on **macOS and Linux** must follow the manual installation guide. Future versions aim to include equivalent shell scripts (`.sh`) for these platforms.
+
+- **Configuration Requires Code Editing**
+
+  - To customize the tool (e.g., add new file types or ignore different directories), a user must directly edit the `CONFIG` dictionary inside the `scripts/merge_script.py` file. A key goal on our [roadmap](CHANGELOG.md#unreleased) is to move this to an external `config.yml` file for much easier customization.
+
+- **No Graphical User Interface (GUI)**
+
+  - RepoLiner is designed as a command-line and script-based utility for developers and power users. There is currently no graphical interface for selecting folders or changing settings.
+
+- **Assumes Text-Based Source Files**
+
+  - The script is designed to read text-based files (like `.py`, `.js`, `.md`, etc.). It will attempt to process any file extension listed in the configuration. If it encounters a binary file (like a `.png` image or `.exe` executable) that happens to have a monitored extension, it may fail or produce garbled output. Ensure your `script_extensions` list only contains text-based file types.
+
+- **Basic Error Handling**
+  - The script uses `errors="ignore"` when reading files to prevent crashes on character encoding issues. This is robust but means that if a file cannot be read properly, its content might be silently skipped or partially included.
+
+If you encounter any other limitations, please consider [opening an issue](https://github.com/your-username/RepoLiner/issues) on GitHub to discuss it!
+
 ### Future Plans / Roadmap
 
 We have many ideas for making RepoLiner even better. Contributions to these features are highly welcome!
