@@ -6,7 +6,7 @@ from datetime import datetime  # --- NEW: Import datetime for timestamps
 CONFIG = {
     # This is now just a folder name, not a full path
     "output_folder": "output",
-    "ignore_files": ["launch.bat"],
+    "ignore_files": ["launch.bat", "package-lock.json"],
     "ignore_dirs": [
         ".git",
         ".vscode",
@@ -15,6 +15,13 @@ CONFIG = {
         ".venv",
         "venv",
         "env",
+        ".next",
+        "out",
+        "gen",
+        "schemas",
+        "target",
+        "debug",
+        ".fingerprint",
         "output",  # Also ignore the output directory itself
     ],
     "lang_map": {
