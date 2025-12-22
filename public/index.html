@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoLiner - Consolidate Your Codebase</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --dark-bg: #1a1a1a;
+            --light-bg: #2c2c2c;
+            --text-color: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --border-color: #444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header & Navigation */
+        .header {
+            background-color: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            container
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li {
+            margin-left: 25px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 100px 0;
+            background: radial-gradient(circle, var(--light-bg) 0%, var(--dark-bg) 80%);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 2rem auto;
+        }
+
+        .cta-buttons .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            margin: 0 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light-bg);
+            border-color: var(--text-muted);
+            transform: translateY(-2px);
+        }
+
+        /* Sections */
+        section {
+            padding: 80px 0;
+        }
+
+        section:nth-child(even) {
+            background-color: var(--light-bg);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 4rem;
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background-color: var(--dark-bg);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            color: var(--primary-color);
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+        }
+
+        /* Usage Section */
+        .usage-steps {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--dark-bg);
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .usage-steps h3 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-right: 20px;
+            line-height: 1;
+        }
+
+        .step-number span {
+            display: block;
+            background: var(--primary-color);
+            color: var(--dark-bg);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-content strong {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
+
+        .step-content p {
+            margin: 0;
+            color: var(--text-muted);
+        }
+
+        .usage-note {
+            text-align: center;
+            margin-top: 2rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--dark-bg);
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                /* Simple hiding for mobile, can be replaced with a hamburger menu */
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header & Navigation -->
+    <header class="header">
+        <div class="container navbar">
+            <a href="#" class="nav-logo">RepoLiner</a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#usage">Usage</a></li>
+                    <li><a href="https://github.com/davidtiberias/RepoLiner" target="_blank">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="container">
+                <h1>Consolidate Your Entire Codebase</h1>
+                <p>RepoLiner scans a project directory and merges all source code into a single, well-formatted Markdown
+                    file. Perfect for code reviews, AI analysis, and project archiving.</p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/davidtiberias/RepoLiner/releases" class="btn btn-primary"
+                        target="_blank">Download from GitHub</a>
+                    <a href="https://github.com/davidtiberias/RepoLiner" class="btn btn-secondary" target="_blank">View
+                        Source Code</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about">
+            <div class="container">
+                <h2 class="section-title">Why RepoLiner?</h2>
+                <p style="max-width: 800px; margin: 0 auto; text-align: center; color: var(--text-muted);">
+                    Preparing for a code audit, onboarding a new developer, or feeding a codebase into a Large Language
+                    Model can be a hassle. It often requires navigating countless files and directories. RepoLiner
+                    automates this entire process by recursively scanning a target directory, finding all relevant
+                    files, and merging them into a single, clean Markdown document, complete with syntax highlighting
+                    for easy reading.
+                </p>
+            </div>
+        </section>
+
+        <!-- Key Features Section -->
+        <section id="features">
+            <div class="container">
+                <h2 class="section-title">Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Automated Windows Setup</h3>
+                        <p>Get started in minutes with simple batch scripts that handle everything from installing
+                            dependencies to setting up the environment.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Interactive & CLI Modes</h3>
+                        <p>Run the tool via a user-friendly interactive prompt or pass arguments directly through the
+                            command line for automation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Intelligent Scanning</h3>
+                        <p>Automatically ignores common non-source directories like .git, node_modules, and virtual
+                            environments to keep your output clean.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Syntax Highlighting</h3>
+                        <p>Generated Markdown files include language identifiers, enabling rich syntax highlighting in
+                            any compatible viewer.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Timestamped Outputs</h3>
+                        <p>Output files are automatically named with the project folder and a precise timestamp,
+                            preventing overwrites and keeping your work organized.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Quality Control Built-in</h3>
+                        <p>Integrated with Black, Flake8, and pre-commit to ensure high code quality and maintainability
+                            for contributors.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How to Use Section -->
+        <section id="usage">
+            <div class="container">
+                <h2 class="section-title">Getting Started</h2>
+                <div class="usage-steps">
+                    <h3>Easy Setup for Windows</h3>
+                    <div class="step">
+                        <div class="step-number"><span>1</span></div>
+                        <div class="step-content">
+                            <strong>Download RepoLiner</strong>
+                            <p>Get the latest release from GitHub and unzip it to a convenient location.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number"><span>2</span></div>
+                        <div class="step-content">
+                            <strong>Run Setup Scripts</strong>
+                            <p>Execute the batch files in order: `1-install-miniconda.bat`, `2-create-environment.bat`,
+                                and `3-install-dependencies-pip.bat`.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number"><span>3</span></div>
+                        <div class="step-content">
+                            <strong>Launch the Tool</strong>
+                            <p>Double-click `launch.bat` to run the tool in interactive mode.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number"><span>4</span></div>
+                        <div class="step-content">
+                            <strong>Scan Your Project</strong>
+                            <p>Paste the full path to your target project directory and press Enter. Your merged file
+                                will appear in the `output` folder.</p>
+                        </div>
+                    </div>
+                    <p class="usage-note">
+                        macOS, Linux, and advanced users can follow the manual installation guide in the <a
+                            href="https://github.com/davidtiberias/RepoLiner#method-b-manual-installation-all-platforms"
+                            target="_blank">README on GitHub</a>.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Distributed under the MIT License. Copyright © 2025</p>
+            <p>A project by David Tiberias. Visit my portfolio at <a href="https://davidtiberias.github.io"
+                    target="_blank">davidtiberias.github.io</a>.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>
