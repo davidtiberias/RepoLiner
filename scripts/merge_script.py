@@ -22,6 +22,7 @@ CONFIG = {
         "target",
         "debug",
         ".fingerprint",
+        "dist",
         "output",  # Also ignore the output directory itself
     ],
     "lang_map": {
@@ -46,6 +47,8 @@ CONFIG = {
         ".rb": "ruby",
         ".vbs": "vbscript",
         ".txt": "text",
+        ".ts": "typescript",
+        ".tsx": "typescript",
     },
 }
 
