@@ -21,7 +21,7 @@ set "TARGET_DIR=%~1"
 :: If no argument is provided, prompt the user for input
 if "%TARGET_DIR%"=="" (
     echo RepoLiner - Project Code Consolidator
-    echo ---------------------------------------
+    echo --------------------------------------------------
     echo.
     set /p "TARGET_DIR=Please enter the full path to the project directory to scan: "
     echo.
@@ -57,13 +57,13 @@ if errorlevel 1 (
 :: --- Run the Python Script ---
 :: Pass the final target directory to the Python script.
 echo Running RepoLiner on "%TARGET_DIR%"...
-echo ---------------------------------------
+echo --------------------------------------------------
 python "%SCRIPT_PATH%" "%TARGET_DIR%"
 echo.
 
-echo ===========================================
+echo ==================================================
 echo   RepoLiner has finished.
 echo   Check the 'output' folder for the result.
-echo ===========================================
+echo ==================================================
 echo.
 pause
