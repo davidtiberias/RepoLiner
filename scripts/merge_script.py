@@ -69,6 +69,7 @@ CONFIG = {
     "lang_map": {
         ".py": "python",
         ".js": "javascript",
+        ".htm": "htm",
         ".html": "html",
         ".css": "css",
         ".json": "json",
