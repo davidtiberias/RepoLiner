@@ -12,3 +12,6 @@ flake8
 
 # For automating quality checks before commits
 pre-commit
+
+# GUI Dependencies
+flask

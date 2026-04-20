@@ -1,100 +1,65 @@
 import os
+import json
 import argparse
 import fnmatch
 
 from datetime import datetime
 
-# --- 1. GLOBAL CONFIGURATION ---
-CONFIG = {
-    "output_folder": "output",  # RepoLiner Output Folder
-    "ignore_files": [
-        # OS Trash
-        ".DS_Store",
-        "thumbs.db",
-        "desktop.ini",
-        # Environment Files
-        "package-lock.json",
-        "yarn.lock",
-        "pnpm-lock.yaml",
-        # Security: Never read secrets!
-        ".env",
-        ".env.local",
-        # User Defined
-        "launch.bat",
-    ],
-    "ignore_dirs": [
-        # RepoLiner Output (Ignore itself)
-        "output",
-        # Version Control
-        ".git",
-        ".svn",
-        ".hg",
-        # IDE settings
-        ".vscode",
-        ".idea",
-        ".vs",
-        # Python Cache
-        "__pycache__",
-        ".pytest_cache",
-        # JS Dependencies
-        "node_modules",
-        # Python Environments
-        ".venv",
-        "venv",
-        "env",
-        # Web Build Artifacts
-        ".next",
-        "out",
-        "build",
-        "dist",
-        # Rust/Java Build Artifacts
-        "target",
-        # C# Build Artifacts
-        "bin",
-        "obj",
-        # PHP/Go Dependencies
-        "vendor",
-        # Other
-        "gen",
-        "schemas",
-        "debug",
-        ".fingerprint",
-        "models",
-        "site-packages"
-        # User Defined
-        ".refactor_backups",
-        ".output",
-        "log",
-        ".docs",
-        "ffmpeg",
-        "runtime",
-        "public",
-    ],
-    "lang_map": {
-        ".py": "python",
-        ".js": "javascript",
-        ".mjs": "ECMAScript",
-        ".htm": "htm",
-        ".html": "html",
-        ".css": "css",
-        ".json": "json",
-        ".md": "markdown",
-        ".sh": "bash",
-        ".txt": "text",
-        ".ts": "typescript",
-        ".tsx": "typescript",
-        ".rs": "rust",
-        ".bat": "batch",
-        ".yaml": "yaml",
-        ".yml": "yml",
-        ".hlsl": "hlsl",
-        ".toml": "toml",
-        ".gitignore": "gitignore",
-        "d.ts": "d.ts",
-    },
-}
+from config_defaults import DEFAULT_CONFIG
 
-# --- 2. CALCULATE GLOBALS ONCE ---
+# --- 1. CONFIGURATION LOADING ---
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+CONFIG_DIR = os.path.join(PROJECT_ROOT, "configs")
+
+
+def load_json_config(filename, default_value):
+    """Loads a JSON config file or creates it with defaults if missing."""
+    file_path = os.path.join(CONFIG_DIR, filename)
+    if not os.path.exists(CONFIG_DIR):
+        os.makedirs(CONFIG_DIR, exist_ok=True)
+
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  -> WARNING: Could not load {filename}: {e}. Using defaults.")
+
+    # Create default file if missing or corrupted
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(default_value, f, indent=4)
+    except Exception as e:
+        print(f"  -> WARNING: Could not save default {filename}: {e}")
+
+    return default_value
+
+
+def save_json_config(filename, data):
+    """Saves a dictionary or list to a JSON config file."""
+    file_path = os.path.join(CONFIG_DIR, filename)
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+        return True
+    except Exception as e:
+        print(f"  -> ERROR: Could not save {filename}: {e}")
+        return False
+
+
+def get_full_config():
+    """Builds the full CONFIG dictionary from modular files."""
+    return {
+        "output_folder": load_json_config("settings.json", DEFAULT_CONFIG["settings"]).get("output_folder", "output"),
+        "ignore_files": load_json_config("ignore_files.json", DEFAULT_CONFIG["ignore_files"]),
+        "ignore_dirs": load_json_config("ignore_dirs.json", DEFAULT_CONFIG["ignore_dirs"]),
+        "lang_map": load_json_config("extensions.json", DEFAULT_CONFIG["extensions"])
+    }
+
+
+# Load globals
+CONFIG = get_full_config()
 IGNORE_FILES = set(f.lower() for f in CONFIG["ignore_files"])
 IGNORE_DIRS = set(d.lower() for d in CONFIG["ignore_dirs"])
 LANG_MAP = CONFIG["lang_map"]
@@ -103,6 +68,12 @@ LANG_MAP = CONFIG["lang_map"]
 def setup_parser():
     parser = argparse.ArgumentParser(description="RepoLiner: Merges project files.")
     parser.add_argument("target_directory", help="Path to project.")
+    parser.add_argument(
+        "--mode",
+        choices=["folder", "dump"],
+        default="folder",
+        help="Output mode: 'folder' (default /output) or 'dump' (repoliner_dump.md in target).",
+    )
     return parser
 
 
@@ -191,18 +162,22 @@ def generate_tree(target_dir, local_patterns):
     return "\n".join(tree_lines)
 
 
-def merge_scripts_to_md(target_dir):
+def merge_scripts_to_md(target_dir, mode="folder"):
     """Merges files using Global CONFIG + Local .gitignore."""
 
     # --- OUTPUT SETUP ---
     script_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    output_dir = os.path.join(script_root_dir, CONFIG["output_folder"])
-    os.makedirs(output_dir, exist_ok=True)
 
-    project_name = os.path.basename(os.path.normpath(target_dir))
-    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
-    output_filename = f"{project_name} {timestamp}.md"
-    output_filepath = os.path.join(output_dir, output_filename)
+    if mode == "dump":
+        output_filepath = os.path.join(target_dir, "repoliner_dump.md")
+    else:
+        output_dir = os.path.join(script_root_dir, CONFIG["output_folder"])
+        os.makedirs(output_dir, exist_ok=True)
+
+        project_name = os.path.basename(os.path.normpath(target_dir))
+        timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+        output_filename = f"{project_name} {timestamp}.md"
+        output_filepath = os.path.join(output_dir, output_filename)
 
     print(f'Scanning project at: "{os.path.abspath(target_dir)}"')
     print(f'Output will be saved to: "{os.path.abspath(output_filepath)}"')
@@ -220,7 +195,9 @@ def merge_scripts_to_md(target_dir):
 
     try:
         with open(output_filepath, "w", encoding="utf-8") as outfile:
+            project_name = os.path.basename(os.path.normpath(target_dir))
             outfile.write(f"# RepoLiner: Merged Code for '{project_name}'\n")
+            timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
             outfile.write(f"Scanned on: {timestamp}\n\n")
 
             print("  -> Generating directory tree...")
@@ -311,31 +288,40 @@ def merge_scripts_to_md(target_dir):
     BOLD = "\033[1m"
 
     # --- The Logic ---
-    if estimated_tokens > 200000:
-        print(f"{RED}{BOLD}⚠️  WARNING: This exceeds Claude 3.5's context limit!{RESET}")
-        print(f"{RED}⚠️  Burp: GPT-4 is full. Claude is unbuttoning his pants.{RESET}")
-        print(
-            f"{GREEN}{BOLD}🍽️  Take this all-you-can-eat buffet to Gemini 2.5/3 Pro at Google AI Studio.{RESET}"
-        )
-        print(f"{GREEN}🐷  It eats 1M tokens for breakfast.{RESET}")
+    if estimated_tokens > 1000000:
+        print(f"{RED}{BOLD}[!!!] EXTREME CAUTION: Over 1 Million Tokens!{RESET}")
+        print(f"{RED}This will melt your credit card. Use Gemini 1.5/2.0.{RESET}")
+
+    elif estimated_tokens > 200000:
+        print(f"{RED}{BOLD}[!] WARNING: This exceeds Claude 3.5's context limit!{RESET}")
+        print(f"{RED}It's too big for Claude (200k tokens). Use Gemini.{RESET}")
+        print(f"{RED}Gemini 1.5/2.0 can handle up to 1-2 million tokens.{RESET}")
 
     elif estimated_tokens > 128000:
-        print(f"{YELLOW}{BOLD}⚠️  WARNING: This exceeds GPT-4's context limit!{RESET}")
-        print(f"{YELLOW}⚠️  It's Over 9000! (Actually, it's over 128,000){RESET}")
+        print(f"{YELLOW}{BOLD}[!] WARNING: This exceeds GPT-4's context limit!{RESET}")
+        print(f"{YELLOW}It's Over 9000! (Actually, it's over 128,000){RESET}")
         print(
-            f"{GREEN}{BOLD}🏗️  Move this project to Claude 3.5; they have 200,000 sq. ft. of land.{RESET}"
+            f"{GREEN}{BOLD}[-] Move this project to Claude 3.5; they have 200,000 sq. ft. of land.{RESET}"
         )
-        print(f"{GREEN}{BOLD}🧠  Or ask Gemini 2.5/3 Pro at Google AI Studio.{RESET}")
-        print(f"{GREEN}✨  They've got a rich parent.{RESET}")
+        print(f"{GREEN}{BOLD}[-] Or ask Gemini Pro at Google AI Studio.{RESET}")
+        print(f"{GREEN}[-] They've got a rich parent.{RESET}")
 
     else:
         print(
-            f"{GREEN}{BOLD}✅  Fits comfortably within modern LLM context windows.{RESET}"
+            f"{GREEN}{BOLD}[OK] Fits comfortably within modern LLM context windows.{RESET}"
         )
-        print(f"{CYAN}✅  I think even Microsoft Copilot can read this.{RESET}")
+        print(f"{CYAN}[OK] I think even Microsoft Copilot can read this.{RESET}")
 
 
 if __name__ == "__main__":
+    # Fix Windows console encoding if possible
+    try:
+        import sys
+        if sys.platform == "win32":
+            sys.stdout.reconfigure(encoding='utf-8')
+    except (AttributeError, ImportError):
+        pass
+
     parser = setup_parser()
     args = parser.parse_args()
-    merge_scripts_to_md(args.target_directory)
+    merge_scripts_to_md(args.target_directory, args.mode)

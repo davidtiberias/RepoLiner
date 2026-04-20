@@ -1,0 +1,12 @@
+[
+    ".DS_Store",
+    "thumbs.db",
+    "desktop.ini",
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    ".env",
+    ".env.local",
+    "launch.bat",
+    "repoliner_dump.md"
+]

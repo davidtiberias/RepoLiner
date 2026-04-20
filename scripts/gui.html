@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoLiner — Visual Code Consolidator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════════════
+           DESIGN SYSTEM
+           ═══════════════════════════════════════════════════ */
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --bg-card: rgba(26, 26, 46, 0.7);
+            --bg-hover: rgba(30, 30, 60, 0.8);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-active: rgba(14, 165, 233, 0.4);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #0ea5e9;
+            --accent-hover: #38bdf8;
+            --accent-glow: rgba(14, 165, 233, 0.15);
+            --success: #22c55e;
+            --success-glow: rgba(34, 197, 94, 0.15);
+            --warning: #f59e0b;
+            --warning-glow: rgba(245, 158, 11, 0.15);
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.15);
+            --purple: #a855f7;
+            --purple-glow: rgba(168, 85, 247, 0.15);
+            --radius: 10px;
+            --radius-sm: 6px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background gradient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 0%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(168, 85, 247, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           LAYOUT
+           ═══════════════════════════════════════════════════ */
+        .app-shell {
+            position: relative;
+            z-index: 1;
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .version-badge {
+            font-size: 0.65rem;
+            font-weight: 500;
+            padding: 2px 8px;
+            background: var(--accent-glow);
+            color: var(--accent);
+            border-radius: 20px;
+            border: 1px solid rgba(14, 165, 233, 0.2);
+        }
+
+        /* ── Path Input Bar ── */
+        .path-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            transition: border-color var(--transition);
+        }
+
+        .path-bar:focus-within {
+            border-color: var(--border-active);
+        }
+
+        .path-bar label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .path-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            outline: none;
+            transition: all var(--transition);
+        }
+
+        .path-input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .path-input::placeholder { color: var(--text-muted); }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--border-active);
+            transform: translateY(-1px);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0284c7);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 2px 12px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--accent-hover), #0ea5e9);
+            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #16a34a);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 2px 12px var(--success-glow);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
+        }
+
+        /* ── Main Layout ── */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* ── Card / Panel ── */
+        .panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-badge {
+            font-size: 0.7rem;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            min-height: 300px;
+            max-height: 500px;
+        }
+
+        .panel-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .panel-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .panel-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .panel-body::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ── Tree View ── */
+        .tree-node {
+            user-select: none;
+        }
+
+        .tree-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 6px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background var(--transition);
+            font-size: 0.82rem;
+        }
+
+        .tree-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .tree-toggle {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            transition: transform var(--transition);
+            flex-shrink: 0;
+        }
+
+        .tree-toggle.open { transform: rotate(90deg); }
+        .tree-toggle.empty { visibility: hidden; }
+
+        .tree-checkbox {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--text-muted);
+            border-radius: 3px;
+            flex-shrink: 0;
+            cursor: pointer;
+            position: relative;
+            transition: all var(--transition);
+        }
+
+        .tree-checkbox:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .tree-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: -1px;
+            left: 2px;
+            font-size: 0.7rem;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .tree-checkbox:indeterminate {
+            background: rgba(14, 165, 233, 0.4);
+            border-color: var(--accent);
+        }
+
+        .tree-checkbox:indeterminate::after {
+            content: '−';
+            position: absolute;
+            top: -2px;
+            left: 2.5px;
+            font-size: 0.8rem;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .tree-icon {
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .tree-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tree-label.excluded {
+            color: var(--text-muted);
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .tree-reason {
+            font-size: 0.65rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 4px;
+            flex-shrink: 0;
+        }
+
+        .reason-gitignore { background: var(--warning-glow); color: var(--warning); }
+        .reason-config { background: var(--purple-glow); color: var(--purple); }
+        .reason-ext { background: var(--danger-glow); color: var(--danger); }
+
+        .tree-children {
+            padding-left: 18px;
+        }
+
+        .tree-children.collapsed {
+            display: none;
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
+
+        .tab-btn.active {
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ── List Items ── */
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: background var(--transition);
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .list-item input[type="checkbox"] {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--text-muted);
+            border-radius: 3px;
+            flex-shrink: 0;
+            cursor: pointer;
+            position: relative;
+            transition: all var(--transition);
+        }
+
+        .list-item input[type="checkbox"]:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .list-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: -1px;
+            left: 2px;
+            font-size: 0.7rem;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .list-item-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .list-item-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .list-item-lang {
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            border-radius: 3px;
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        /* ── Action Bar ── */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            flex-wrap: wrap;
+        }
+
+        .mode-selector {
+            display: flex;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .mode-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all var(--transition);
+            border-right: 1px solid var(--border);
+        }
+
+        .mode-option:last-child { border-right: none; }
+
+        .mode-option:hover { color: var(--text-secondary); }
+
+        .mode-option input[type="radio"] { display: none; }
+
+        .mode-option.selected {
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        .action-spacer { flex: 1; }
+
+        .action-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ── Result Panel ── */
+        .result-panel {
+            padding: 16px 18px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: none;
+        }
+
+        .result-panel.visible { display: block; }
+
+        .result-success {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .result-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .result-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value.green { color: var(--success); }
+        .stat-value.yellow { color: var(--warning); }
+        .stat-value.red { color: var(--danger); }
+
+        .token-bar {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .token-bar-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .token-bar-track {
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .token-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        /* ── Empty / Loading States ── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            text-align: center;
+            gap: 12px;
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 0.85rem;
+            max-width: 280px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 15, 26, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            border-radius: var(--radius);
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition);
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .loading-overlay .spinner {
+            width: 30px;
+            height: 30px;
+        }
+
+        .loading-overlay p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* ── Filter search ── */
+        .filter-search {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .filter-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            outline: none;
+            transition: all var(--transition);
+        }
+
+        .filter-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .filter-input::placeholder { color: var(--text-muted); }
+
+        /* ── Config Actions ── */
+        .config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-title {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .btn-ghost {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            background: transparent;
+            border-color: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--accent-glow);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .add-ext-form {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(14, 165, 233, 0.03);
+        }
+
+        .add-ext-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: #fff;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            outline: none;
+        }
+
+        .add-ext-input:focus { border-color: var(--accent); }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow);
+            color: #fff;
+            font-size: 0.85rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #toast.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .action-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .action-spacer { display: none; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-shell">
+        <!-- ════════════════════════ HEADER ════════════════════════ -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">📦</div>
+                <span>RepoLiner</span>
+                <span class="version-badge">GUI</span>
+            </div>
+        </header>
+
+        <!-- ════════════════════════ PATH BAR ════════════════════════ -->
+        <div class="path-bar">
+            <label>📂 Project Root</label>
+            <input type="text" id="pathInput" class="path-input" placeholder="Paste project path or click Browse...">
+            <button class="btn" id="btnBrowse" onclick="browseFolder()">Browse</button>
+            <button class="btn btn-primary" id="btnScan" onclick="scanProject()">Scan</button>
+        </div>
+
+        <!-- ════════════════════════ MAIN CONTENT ════════════════════════ -->
+        <div class="main-content">
+            <!-- ── Left Panel: Project Tree ── -->
+            <div class="panel" id="treePanel" style="position: relative;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        🌳 Project Tree
+                        <span class="panel-badge" id="treeCount">0 items</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="btn" style="padding:4px 10px;font-size:0.72rem;" onclick="treeCheckAll(true)">All</button>
+                        <button class="btn" style="padding:4px 10px;font-size:0.72rem;" onclick="treeCheckAll(false)">None</button>
+                    </div>
+                </div>
+                <div class="panel-body" id="treeBody">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📁</div>
+                        <p>Select a project directory and click <strong>Scan</strong> to see the file tree.</p>
+                    </div>
+                </div>
+                <div class="loading-overlay" id="treePanelLoader">
+                    <div class="spinner"></div>
+                    <p>Scanning directory...</p>
+                </div>
+            </div>
+
+            <!-- ── Right Panel: Config Tabs ── -->
+            <div class="panel" id="configPanel">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('extensions', this)">Extensions</button>
+                    <button class="tab-btn" onclick="switchTab('folders', this)">Folders</button>
+                    <button class="tab-btn" onclick="switchTab('files', this)">Files</button>
+                    <button class="tab-btn" onclick="switchTab('gitignore', this)">Gitignore</button>
+                </div>
+                <div class="panel-body" id="configBody">
+                    <!-- Extensions Tab -->
+                    <div class="tab-content active" id="tab-extensions">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔌</div>
+                            <p>Scan a project to discover file extensions.</p>
+                        </div>
+                    </div>
+                    <!-- Folders Tab -->
+                    <div class="tab-content" id="tab-folders">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📂</div>
+                            <p>Scan a project to see folder rules.</p>
+                        </div>
+                    </div>
+                    <!-- Files Tab -->
+                    <div class="tab-content" id="tab-files">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📄</div>
+                            <p>Scan a project to see file rules.</p>
+                        </div>
+                    </div>
+                    <!-- Gitignore Tab -->
+                    <div class="tab-content" id="tab-gitignore">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🚫</div>
+                            <p>Scan a project to load .gitignore patterns.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast"></div>
+
+        <!-- ════════════════════════ ACTION BAR ════════════════════════ -->
+        <div class="action-bar">
+            <div class="mode-selector">
+                <label class="mode-option selected" id="modeFolder" onclick="selectMode('folder')">
+                    <input type="radio" name="mode" value="folder" checked>
+                    📁 Standard Output
+                </label>
+                <label class="mode-option" id="modeDump" onclick="selectMode('dump')">
+                    <input type="radio" name="mode" value="dump">
+                    📥 Dump to Folder
+                </label>
+            </div>
+
+            <div class="action-spacer"></div>
+
+            <div class="action-group">
+                <button class="btn" onclick="openFolder('output')">📁 Open Output</button>
+                <button class="btn" onclick="openFolder('project')">📁 Open Project</button>
+                <button class="btn btn-success" id="btnMerge" onclick="runMerge()" disabled>
+                    ▶ Generate
+                </button>
+            </div>
+        </div>
+
+        <!-- ════════════════════════ RESULT PANEL ════════════════════════ -->
+        <div class="result-panel" id="resultPanel">
+            <div class="result-header">
+                <span id="resultIcon">✅</span>
+                <h3 id="resultTitle">Merge Complete</h3>
+            </div>
+            <div class="result-stats" id="resultStats"></div>
+            <div class="token-bar" id="tokenBar"></div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════
+        //  STATE
+        // ═══════════════════════════════════════════════════════════
+        let scanData = null;
+        let currentMode = "folder";
+
+        // ═══════════════════════════════════════════════════════════
+        //  API CALLS
+        // ═══════════════════════════════════════════════════════════
+
+        async function browseFolder() {
+            const btn = document.getElementById('btnBrowse');
+            btn.textContent = '...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/browse', { method: 'POST' });
+                const data = await res.json();
+                if (data.success && data.path) {
+                    document.getElementById('pathInput').value = data.path;
+                    scanProject();
+                }
+            } catch (e) {
+                console.error('Browse error:', e);
+            }
+            btn.textContent = 'Browse';
+            btn.disabled = false;
+        }
+
+        async function scanProject() {
+            const path = document.getElementById('pathInput').value.trim();
+            if (!path) return;
+
+            const loader = document.getElementById('treePanelLoader');
+            loader.classList.add('active');
+            document.getElementById('btnMerge').disabled = true;
+
+            try {
+                const res = await fetch('/api/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path }),
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    scanData = data;
+                    scanData._path = path;
+                    renderTree(data.tree);
+                    renderExtensionsTab(data);
+                    renderFoldersTab(data);
+                    renderFilesTab(data);
+                    renderGitignoreTab(data);
+                    document.getElementById('btnMerge').disabled = false;
+                } else {
+                    alert('Scan failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Connection error: ' + e.message);
+            }
+
+            loader.classList.remove('active');
+        }
+
+        async function runMerge() {
+            const path = scanData?._path;
+            if (!path) return;
+
+            const btn = document.getElementById('btnMerge');
+            const origText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> Working...';
+            btn.disabled = true;
+
+            // Collect current configuration from the UI
+            const includedExts = getCheckedValues('ext-checkbox');
+            const excludedDirs = getUncheckedValues('dir-checkbox');
+            const excludedFiles = getUncheckedValues('file-checkbox');
+            const gitignorePatterns = getCheckedValues('gitignore-checkbox');
+
+            try {
+                const res = await fetch('/api/merge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path,
+                        mode: currentMode,
+                        included_extensions: includedExts,
+                        excluded_dirs: excludedDirs,
+                        excluded_files: excludedFiles,
+                        gitignore_patterns: gitignorePatterns,
+                    }),
+                });
+                const data = await res.json();
+                showResult(data);
+            } catch (e) {
+                alert('Merge error: ' + e.message);
+            }
+
+            btn.innerHTML = origText;
+            btn.disabled = false;
+        }
+
+        async function openFolder(type) {
+            let folderPath = '';
+            if (type === 'output') {
+                folderPath = '__output__';
+            } else {
+                folderPath = document.getElementById('pathInput').value.trim();
+                if (!folderPath) {
+                    alert('No project path set.');
+                    return;
+                }
+            }
+
+            await fetch('/api/open-folder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: folderPath }),
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  RENDER: Project Tree
+        // ═══════════════════════════════════════════════════════════
+
+        function renderTree(tree) {
+            const container = document.getElementById('treeBody');
+            let totalItems = 0;
+
+            function countItems(nodes) {
+                for (const n of nodes) {
+                    totalItems++;
+                    if (n.children) countItems(n.children);
+                }
+            }
+            countItems(tree);
+
+            container.innerHTML = buildTreeHTML(tree, true);
+            document.getElementById('treeCount').textContent = `${totalItems} items`;
+
+            // Add all event listeners
+            container.querySelectorAll('.tree-toggle').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const node = el.closest('.tree-node');
+                    const children = node.querySelector('.tree-children');
+                    if (children) {
+                        children.classList.toggle('collapsed');
+                        el.classList.toggle('open');
+                    }
+                });
+            });
+
+            container.querySelectorAll('.tree-checkbox').forEach(el => {
+                el.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    const node = el.closest('.tree-node');
+                    const checked = el.checked;
+
+                    // Propagate to children
+                    node.querySelectorAll('.tree-checkbox').forEach(child => {
+                        child.checked = checked;
+                        child.indeterminate = false;
+                    });
+
+                    // Update parent indeterminate states
+                    updateParentCheckState(el);
+                });
+            });
+        }
+
+        function buildTreeHTML(nodes, isRoot) {
+            let html = '';
+            for (const node of nodes) {
+                const isDir = node.type === 'dir';
+                const icon = isDir ? '📂' : getFileIcon(node.ext);
+                const hasChildren = isDir && node.children && node.children.length > 0;
+                const isExcluded = node.excluded;
+                const labelClass = isExcluded ? 'excluded' : '';
+
+                let reasonHTML = '';
+                if (node.reason === 'gitignore') {
+                    reasonHTML = '<span class="tree-reason reason-gitignore">.gitignore</span>';
+                } else if (node.reason === 'repoliner_config') {
+                    reasonHTML = '<span class="tree-reason reason-config">config</span>';
+                } else if (node.reason === 'extension_not_supported') {
+                    reasonHTML = '<span class="tree-reason reason-ext">ext</span>';
+                }
+
+                html += `<div class="tree-node" data-path="${node.path}" data-type="${node.type}">`;
+                html += `<div class="tree-row">`;
+                html += `<span class="tree-toggle ${hasChildren ? 'open' : 'empty'}">▶</span>`;
+                html += `<input type="checkbox" class="tree-checkbox" ${isExcluded ? '' : 'checked'} data-path="${node.path}">`;
+                html += `<span class="tree-icon">${icon}</span>`;
+                html += `<span class="tree-label ${labelClass}">${node.name}</span>`;
+                html += reasonHTML;
+                html += `</div>`;
+
+                if (hasChildren) {
+                    html += `<div class="tree-children">`;
+                    html += buildTreeHTML(node.children, false);
+                    html += `</div>`;
+                }
+
+                html += `</div>`;
+            }
+            return html;
+        }
+
+        function getFileIcon(ext) {
+            const icons = {
+                '.py': '🐍', '.js': '⚡', '.ts': '🔷', '.tsx': '🔷',
+                '.html': '🌐', '.htm': '🌐', '.css': '🎨',
+                '.json': '📋', '.yaml': '⚙️', '.yml': '⚙️',
+                '.md': '📝', '.txt': '📄',
+                '.rs': '🦀', '.toml': '⚙️',
+                '.sh': '🐚', '.bat': '🖥️',
+            };
+            return icons[ext] || '📄';
+        }
+
+        function updateParentCheckState(checkbox) {
+            const node = checkbox.closest('.tree-node');
+            const parentChildren = node.parentElement;
+            if (!parentChildren || !parentChildren.classList.contains('tree-children')) return;
+
+            const parentNode = parentChildren.closest('.tree-node');
+            if (!parentNode) return;
+
+            const parentCheckbox = parentNode.querySelector(':scope > .tree-row > .tree-checkbox');
+            if (!parentCheckbox) return;
+
+            const siblings = parentChildren.querySelectorAll(':scope > .tree-node > .tree-row > .tree-checkbox');
+            const total = siblings.length;
+            let checked = 0;
+            let indeterminate = 0;
+
+            siblings.forEach(s => {
+                if (s.checked) checked++;
+                if (s.indeterminate) indeterminate++;
+            });
+
+            if (checked === total && indeterminate === 0) {
+                parentCheckbox.checked = true;
+                parentCheckbox.indeterminate = false;
+            } else if (checked === 0 && indeterminate === 0) {
+                parentCheckbox.checked = false;
+                parentCheckbox.indeterminate = false;
+            } else {
+                parentCheckbox.checked = false;
+                parentCheckbox.indeterminate = true;
+            }
+
+            updateParentCheckState(parentCheckbox);
+        }
+
+        function treeCheckAll(state) {
+            document.querySelectorAll('#treeBody .tree-checkbox').forEach(cb => {
+                cb.checked = state;
+                cb.indeterminate = false;
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  CONFIG MANAGEMENT
+        // ═══════════════════════════════════════════════════════════
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = (type === 'success' ? '✅ ' : '❌ ') + message;
+            toast.classList.add('visible');
+            setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 3000);
+        }
+
+        async function saveActiveConfig(type) {
+            let data = null;
+            
+            if (type === 'extensions') {
+                // Get all checked extensions and their languages
+                data = {};
+                document.querySelectorAll('.ext-checkbox:checked').forEach(cb => {
+                    data[cb.dataset.value] = cb.dataset.lang || 'text';
+                });
+            } else if (type === 'ignore_dirs') {
+                // Get all UNCHECKED directories (those the user wants to stay ignored)
+                data = Array.from(document.querySelectorAll('.dir-checkbox:not(:checked)'))
+                    .map(cb => cb.dataset.value);
+            } else if (type === 'ignore_files') {
+                // Get all UNCHECKED files
+                data = Array.from(document.querySelectorAll('.file-checkbox:not(:checked)'))
+                    .map(cb => cb.dataset.value);
+            }
+
+            if (!data) return;
+
+            try {
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, data }),
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(`Updated global ${type} config`);
+                } else {
+                    showToast('Failed to save config: ' + result.error, 'error');
+                }
+            } catch (e) {
+                showToast('Save error: ' + e.message, 'error');
+            }
+        }
+
+        async function removeConfigItem(type, value) {
+            if (!confirm(`Remove "${value}" from global ${type} configuration?`)) return;
+
+            let currentList = [];
+            if (type === 'extensions') {
+                currentList = scanData.lang_map;
+                delete currentList[value];
+            } else if (type === 'ignore_dirs') {
+                currentList = scanData.excluded_dirs.filter(d => d !== value);
+            } else if (type === 'ignore_files') {
+                currentList = scanData.ignore_files.filter(f => f !== value);
+            }
+
+            try {
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, data: currentList }),
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(`Removed "${value}" from ${type}`);
+                    scanProject(); // Refresh UI
+                }
+            } catch (e) {
+                showToast('Error removing item: ' + e.message, 'error');
+            }
+        }
+
+        async function addNewExtension() {
+            const ext = document.getElementById('newExtInput').value.trim();
+            const lang = document.getElementById('newLangInput').value.trim() || 'text';
+
+            if (!ext.startsWith('.')) {
+                alert('Extension must start with a dot (e.g. .log)');
+                return;
+            }
+
+            const currentMap = scanData ? { ...scanData.lang_map } : {};
+            currentMap[ext] = lang;
+
+            try {
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'extensions', data: currentMap }),
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(`Added ${ext} (${lang}) to global config`);
+                    document.getElementById('newExtInput').value = '';
+                    document.getElementById('newLangInput').value = '';
+                    if (scanData) scanProject(); // Refresh if we have a path
+                }
+            } catch (e) {
+                showToast('Error adding extension: ' + e.message, 'error');
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  RENDER: Config Tabs
+        // ═══════════════════════════════════════════════════════════
+
+        function renderExtensionsTab(data) {
+            const container = document.getElementById('tab-extensions');
+            let html = '';
+
+            // Add Extension Form
+            html += `
+                <div class="add-ext-form">
+                    <input type="text" id="newExtInput" class="add-ext-input" placeholder=".ext" style="width: 60px;">
+                    <input type="text" id="newLangInput" class="add-ext-input" placeholder="lang (e.g. python)" style="flex:1;">
+                    <button class="btn btn-ghost" onclick="addNewExtension()">Add</button>
+                </div>`;
+
+            // Supported (included) extensions
+            if (data.included_extensions.length) {
+                html += `
+                    <div class="config-header">
+                        <span class="config-title">Supported Extensions</span>
+                        <button class="btn btn-ghost" onclick="saveActiveConfig('extensions')">Save as Default</button>
+                    </div>`;
+                for (const ext of data.included_extensions) {
+                    const lang = data.lang_map[ext] || 'unknown';
+                    html += `
+                        <div class="list-item">
+                            <input type="checkbox" checked data-value="${ext}" data-lang="${lang}" class="ext-checkbox">
+                            <span class="list-item-label">${ext}</span>
+                            <span class="list-item-lang">${lang}</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;" onclick="removeConfigItem('extensions', '${ext}')">×</button>
+                        </div>`;
+                }
+            }
+
+            // Unsupported (excluded) extensions
+            if (data.excluded_extensions.length) {
+                html += '<div class="config-header"><span class="config-title">Unsupported (found in project)</span></div>';
+                for (const ext of data.excluded_extensions) {
+                    html += `
+                        <div class="list-item">
+                            <input type="checkbox" data-value="${ext}" data-lang="text" class="ext-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">${ext}</span>
+                        </div>`;
+                }
+            }
+
+            container.innerHTML = html || '<div class="empty-state"><p>No extensions found.</p></div>';
+        }
+
+        function renderFoldersTab(data) {
+            const container = document.getElementById('tab-folders');
+            let html = '';
+
+            if (data.included_dirs.length) {
+                html += '<div class="config-header"><span class="config-title">Included Folders</span></div>';
+                for (const dir of data.included_dirs) {
+                    html += `
+                        <div class="list-item">
+                            <input type="checkbox" checked data-value="${dir}" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">${dir}</span>
+                        </div>`;
+                }
+            }
+
+            if (data.excluded_dirs.length) {
+                html += `
+                    <div class="config-header">
+                        <span class="config-title">Excluded Folders</span>
+                        <button class="btn btn-ghost" onclick="saveActiveConfig('ignore_dirs')">Save as Default</button>
+                    </div>`;
+                for (const dir of data.excluded_dirs) {
+                    html += `
+                        <div class="list-item">
+                            <input type="checkbox" data-value="${dir}" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">${dir}</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;" onclick="removeConfigItem('ignore_dirs', '${dir}')">×</button>
+                        </div>`;
+                }
+            }
+
+            container.innerHTML = html || '<div class="empty-state"><p>No folders found.</p></div>';
+        }
+
+        function renderFilesTab(data) {
+            const container = document.getElementById('tab-files');
+            let html = '';
+
+            html += `
+                <div class="config-header">
+                    <span class="config-title">Excluded Files</span>
+                    <button class="btn btn-ghost" onclick="saveActiveConfig('ignore_files')">Save as Default</button>
+                </div>`;
+            for (const file of data.ignore_files) {
+                html += `
+                    <div class="list-item">
+                        <input type="checkbox" data-value="${file}" class="file-checkbox">
+                        <span class="tree-icon">📄</span>
+                        <span class="list-item-label" style="color:var(--text-muted)">${file}</span>
+                        <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;" onclick="removeConfigItem('ignore_files', '${file}')">×</button>
+                    </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderGitignoreTab(data) {
+            const container = document.getElementById('tab-gitignore');
+
+            if (!data.gitignore_patterns.length) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚫</div><p>No .gitignore file found in project root.</p></div>';
+                return;
+            }
+
+            let html = '<div style="padding:8px 12px;font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Patterns from .gitignore (checked = honored)</div>';
+            for (const pattern of data.gitignore_patterns) {
+                html += `
+                    <div class="list-item">
+                        <input type="checkbox" checked data-value="${pattern}" class="gitignore-checkbox">
+                        <span class="list-item-label">${pattern}</span>
+                        <span class="tree-reason reason-gitignore">.gitignore</span>
+                    </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  HELPERS
+        // ═══════════════════════════════════════════════════════════
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeFolder').classList.toggle('selected', mode === 'folder');
+            document.getElementById('modeDump').classList.toggle('selected', mode === 'dump');
+        }
+
+        function getCheckedValues(className) {
+            return Array.from(document.querySelectorAll('.' + className + ':checked'))
+                .map(el => el.dataset.value);
+        }
+
+        function getUncheckedValues(className) {
+            return Array.from(document.querySelectorAll('.' + className + ':not(:checked)'))
+                .map(el => el.dataset.value);
+        }
+
+        function showResult(data) {
+            const panel = document.getElementById('resultPanel');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const stats = document.getElementById('resultStats');
+            const tokenBarDiv = document.getElementById('tokenBar');
+
+            if (!data.success) {
+                panel.className = 'result-panel visible';
+                icon.textContent = '❌';
+                title.textContent = 'Merge Failed';
+                stats.innerHTML = `<p style="color:var(--danger)">${data.error}</p>`;
+                tokenBarDiv.innerHTML = '';
+                return;
+            }
+
+            panel.className = 'result-panel visible result-success';
+            icon.textContent = '✅';
+            title.textContent = 'Merge Complete';
+
+            const tokens = data.total_tokens;
+            let colorClass = 'green';
+            let fitLabel = 'Fits all modern LLMs';
+            if (tokens > 200000) {
+                colorClass = 'red';
+                fitLabel = 'Exceeds Claude 3.5 limit — use Gemini';
+            } else if (tokens > 128000) {
+                colorClass = 'yellow';
+                fitLabel = 'Exceeds GPT-4 limit — use Claude or Gemini';
+            }
+
+            stats.innerHTML = `
+                <div class="stat">
+                    <span class="stat-value">${data.files_merged}</span>
+                    <span class="stat-label">Files Merged</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value ${colorClass}">~${tokens.toLocaleString()}</span>
+                    <span class="stat-label">Est. Tokens</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" style="font-size:0.85rem;">${data.output_path}</span>
+                    <span class="stat-label">Output Path</span>
+                </div>
+            `;
+
+            const maxTokens = 1000000;
+            const pct = Math.min((tokens / maxTokens) * 100, 100);
+            const barColor = colorClass === 'green' ? 'var(--success)' :
+                             colorClass === 'yellow' ? 'var(--warning)' : 'var(--danger)';
+
+            tokenBarDiv.innerHTML = `
+                <div class="token-bar-label">
+                    <span>${fitLabel}</span>
+                    <span>${tokens.toLocaleString()} / 1,000,000</span>
+                </div>
+                <div class="token-bar-track">
+                    <div class="token-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+                </div>
+            `;
+
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // ── Enter key on path input triggers scan ──
+        document.getElementById('pathInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') scanProject();
+        });
+    </script>
+</body>
+
+</html>

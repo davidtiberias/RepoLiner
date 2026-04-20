@@ -1,0 +1,21 @@
+{
+    ".py": "python",
+    ".js": "javascript",
+    ".mjs": "ECMAScript",
+    ".htm": "htm",
+    ".html": "html",
+    ".css": "css",
+    ".json": "json",
+    ".sh": "bash",
+    ".txt": "text",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".rs": "rust",
+    ".bat": "batch",
+    ".yaml": "yaml",
+    ".yml": "yml",
+    ".hlsl": "hlsl",
+    ".toml": "toml",
+    ".gitignore": "gitignore",
+    "d.ts": "d.ts"
+}
