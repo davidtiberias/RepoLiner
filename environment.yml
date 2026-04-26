@@ -5,3 +5,11 @@ channels:
   - conda-forge
 dependencies:
   - python=3.9
+  - pip
+  - pip:
+    # GUI Dependencies
+    - flask
+    # Development & Code Quality
+    - black==24.4.2
+    - flake8==7.0.0
+    - pre-commit

@@ -2,15 +2,16 @@
 cls
 
 :: =================================================================
-:: RepoLiner Setup - Step 2: Create Conda Environment
+:: RepoLiner Setup - Step 2: Create Environment & Install Dependencies
 :: =================================================================
 :: This script will automatically:
-:: 1. Locate your new Miniconda installation.
-:: 2. Create the dedicated 'repoliner-env' Conda environment.
+:: 1. Locate your Miniconda installation.
+:: 2. Create the 'repoliner-env' Conda environment from environment.yml.
+:: 3. Install all Python packages specified in the file.
 :: =================================================================
 echo.
-echo RepoLiner Setup - Step 2 of 2: Creating Environment
-echo ----------------------------------------------------
+echo RepoLiner Setup - Step 2 of 2: Creating Environment & Installing Dependencies
+echo --------------------------------------------------------------------------
 echo.
 
 :: --- Configuration ---
@@ -29,8 +30,8 @@ echo Locating Conda and setting up environment...
 call "%CONDA_PATH%"
 
 :: --- Create the environment from the file ---
-echo Creating the 'repoliner-env'. This will download required packages...
-conda env create -f environment.yml
+echo Creating 'repoliner-env' and installing all packages. This may take a while...
+conda env create -f environment.yml --force
 
 if errorlevel 1 (
     echo.
@@ -41,11 +42,10 @@ if errorlevel 1 (
 )
 
 echo.
-echo ===================================================
-echo   SUCCESS: The RepoLiner environment is ready!
-echo ===================================================
+echo ===================================================================
+echo   SUCCESS: The RepoLiner environment and all dependencies are ready!
+echo ===================================================================
 echo.
-echo Setup is now complete. You can now run 'launch.bat'
-echo to start using the program.
+echo Setup is complete. You can now run 'launch.bat' to start the program.
 echo.
 pause
