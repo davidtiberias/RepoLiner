@@ -7,7 +7,9 @@
     <title>RepoLiner — Visual Code Consolidator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
@@ -40,8 +42,10 @@
                         <span class="panel-badge" id="treeCount">0 items</span>
                     </div>
                     <div style="display:flex;gap:6px;">
-                        <button class="btn" style="padding:4px 10px;font-size:0.72rem;" onclick="treeCheckAll(true)">All</button>
-                        <button class="btn" style="padding:4px 10px;font-size:0.72rem;" onclick="treeCheckAll(false)">None</button>
+                        <button class="btn" style="padding:4px 10px;font-size:0.72rem;"
+                            onclick="treeCheckAll(true)">All</button>
+                        <button class="btn" style="padding:4px 10px;font-size:0.72rem;"
+                            onclick="treeCheckAll(false)">None</button>
                     </div>
                 </div>
                 <div class="panel-body" id="treeBody">
@@ -59,15 +63,33 @@
             <!-- ── Right Panel: Config Tabs ── -->
             <div class="panel" id="configPanel">
                 <div class="tabs">
-                    <button class="tab-btn active" onclick="switchTab('inspector', this)">Inspector</button>
-                    <button class="tab-btn" onclick="switchTab('extensions', this)">Extensions</button>
-                    <button class="tab-btn" onclick="switchTab('folders', this)">Folders</button>
-                    <button class="tab-btn" onclick="switchTab('files', this)">Files</button>
-                    <button class="tab-btn" onclick="switchTab('gitignore', this)">Gitignore</button>
+                    <button class="tab-btn active" onclick="switchTab('extensions', this)">1. Extensions</button>
+                    <button class="tab-btn" onclick="switchTab('repoignore', this)">2. Repoignore</button>
+                    <button class="tab-btn" onclick="switchTab('gitignore', this)">3. Gitignore</button>
+                    <button class="tab-btn" onclick="switchTab('folders', this)">4. Folders</button>
+                    <button class="tab-btn" onclick="switchTab('files', this)">5. Files</button>
+                    <button class="tab-btn" onclick="switchTab('ignore-exts', this)">6. Ignored Exts</button>
+                    <button class="tab-btn" onclick="switchTab('inspector', this)">🔍 Inspector</button>
                 </div>
                 <div class="panel-body" id="configBody">
+                    <!-- Repoignore Tab -->
+                    <div class="tab-content" id="tab-repoignore">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📄</div>
+                            <p>Scan a project to load .repoignore patterns.</p>
+                        </div>
+                    </div>
+
+                    <!-- Ignored Extensions Tab -->
+                    <div class="tab-content" id="tab-ignore-exts">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🚫</div>
+                            <p>Scan a project to see ignored extensions.</p>
+                        </div>
+                    </div>
+
                     <!-- Inspector Tab -->
-                    <div class="tab-content active" id="tab-inspector">
+                    <div class="tab-content" id="tab-inspector">
                         <div class="empty-state">
                             <div class="empty-state-icon">🔍</div>
                             <p>Click an item in the tree to inspect its inclusion rules.</p>
@@ -78,6 +100,13 @@
                         <div class="empty-state">
                             <div class="empty-state-icon">🔌</div>
                             <p>Scan a project to discover file extensions.</p>
+                        </div>
+                    </div>
+                    <!-- Gitignore Tab -->
+                    <div class="tab-content" id="tab-gitignore">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🚫</div>
+                            <p>Scan a project to load .gitignore patterns.</p>
                         </div>
                     </div>
                     <!-- Folders Tab -->
@@ -92,13 +121,6 @@
                         <div class="empty-state">
                             <div class="empty-state-icon">📄</div>
                             <p>Scan a project to see file rules.</p>
-                        </div>
-                    </div>
-                    <!-- Gitignore Tab -->
-                    <div class="tab-content" id="tab-gitignore">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🚫</div>
-                            <p>Scan a project to load .gitignore patterns.</p>
                         </div>
                     </div>
                 </div>
@@ -139,6 +161,15 @@
             </div>
             <div class="result-stats" id="resultStats"></div>
             <div class="token-bar" id="tokenBar"></div>
+
+            <!-- NEW: Final Summary Tree Container -->
+            <div class="result-tree-container" id="resultTreeContainer"
+                style="display: none; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+                <h4 style="font-size: 0.85rem; margin-bottom: 8px; color: var(--text-secondary);">Final Included Tree
+                </h4>
+                <pre id="resultTree"
+                    style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.75rem; overflow-x: auto; max-height: 300px; overflow-y: auto; color: var(--text-primary); border: 1px solid var(--border);"></pre>
+            </div>
         </div>
     </div>
 

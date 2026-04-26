@@ -5,39 +5,30 @@ import fnmatch
 from datetime import datetime
 from config_defaults import DEFAULT_CONFIG
 
-# This file contains the core logic, shared by both the CLI and GUI.
-# It has no print statements and returns data structures.
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "configs")
 
 
 def load_json_config(filename, default_value):
-    """Loads a JSON config file or creates it with defaults if missing."""
     file_path = os.path.join(CONFIG_DIR, filename)
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR, exist_ok=True)
-
     if os.path.exists(file_path):
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
-            pass  # Fail silently in core logic
-
-    # Create default file if missing or corrupted
+            pass
     try:
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(default_value, f, indent=4)
     except Exception:
         pass
-
     return default_value
 
 
 def save_json_config(filename, data):
-    """Saves a dictionary or list to a JSON config file."""
     file_path = os.path.join(CONFIG_DIR, filename)
     try:
         with open(file_path, "w", encoding="utf-8") as f:
@@ -48,24 +39,20 @@ def save_json_config(filename, data):
 
 
 def get_full_config():
-    """Builds the full CONFIG dictionary from modular files."""
     return {
-        "output_folder": load_json_config("settings.json", DEFAULT_CONFIG["settings"]).get(
-            "output_folder", "output"
-        ),
-        "ignore_files": load_json_config(
-            "ignore_files.json", DEFAULT_CONFIG["ignore_files"]
-        ),
-        "ignore_dirs": load_json_config(
-            "ignore_dirs.json", DEFAULT_CONFIG["ignore_dirs"]
-        ),
+        "output_folder": load_json_config("settings.json", DEFAULT_CONFIG["settings"]).get("output_folder", "output"),
+        "ignore_files": load_json_config("ignore_files.json", DEFAULT_CONFIG["ignore_files"]),
+        "ignore_dirs": load_json_config("ignore_dirs.json", DEFAULT_CONFIG["ignore_dirs"]),
+        "ignore_exts": load_json_config("ignore_exts.json", DEFAULT_CONFIG["ignore_exts"]),
         "lang_map": load_json_config("extensions.json", DEFAULT_CONFIG["extensions"]),
     }
 
 
-def estimate_tokens(text_content):
-    """Rough estimation: 1 Token ~= 4 Characters."""
-    return len(text_content) // 4
+def estimate_tokens(text_or_len):
+    """Rough estimation: 1 Token ~= 4 Characters. Accepts string or character count."""
+    if isinstance(text_or_len, int):
+        return text_or_len // 4
+    return len(str(text_or_len)) // 4
 
 
 class RepoLiner:
@@ -76,156 +63,150 @@ class RepoLiner:
         self.config = get_full_config()
         self.ignore_files = set(f.lower() for f in self.config["ignore_files"])
         self.ignore_dirs = set(d.lower() for d in self.config["ignore_dirs"])
+        self.ignore_exts = set(e.lower() for e in self.config["ignore_exts"])
         self.lang_map = self.config["lang_map"]
-        self.gitignore_patterns = self._load_gitignore()
+        
+        # Load both ignore files
+        self.gitignore_patterns = self._load_ignore_file(".gitignore")
+        self.repoignore_patterns = self._load_ignore_file(".repoignore")
+        
         self.manually_included = set(p.replace("\\", "/") for p in (manually_included or []))
         self.manually_excluded = set(p.replace("\\", "/") for p in (manually_excluded or []))
 
-    def _load_gitignore(self):
+    def _get_extension(self, filename):
+        """Robustly extracts extension, handling dotfiles like .gitignore or .flake8 correctly."""
+        ext = os.path.splitext(filename)[1].lower()
+        if not ext and filename.startswith('.'):
+            return filename.lower()
+        return ext
+
+    def _load_ignore_file(self, filename):
         patterns = []
-        gitignore_path = os.path.join(self.target_dir, ".gitignore")
-        if os.path.exists(gitignore_path):
+        filepath = os.path.join(self.target_dir, filename)
+        if os.path.exists(filepath):
             try:
-                with open(gitignore_path, "r", encoding="utf-8") as f:
+                with open(filepath, "r", encoding="utf-8") as f:
                     for line in f:
                         line = line.strip()
                         if line and not line.startswith("#"):
                             patterns.append(line)
             except Exception:
-                pass  # Fail silently
+                pass
         return patterns
 
-    def _is_path_ignored(self, rel_path, is_dir=False):
-        """
-        Determines if a path should be ignored based on the hierarchy:
-        1. Manual Exclude (Highest)
-        2. Manual Include
-        3. .gitignore
-        4. Global Config
-        """
+    def _is_path_ignored_by_base(self, rel_path, is_dir=False):
+        """Strictly checks base rules (Global Config & .gitignore). No manual overrides here."""
         rel_path = rel_path.replace("\\", "/")
         name = os.path.basename(rel_path)
-        
-        # 1. Manual Overrides
-        if rel_path in self.manually_excluded:
-            return True
-        if rel_path in self.manually_included:
-            return False
+
+        # 1. Global Configs
+        if is_dir and name.lower() in self.ignore_dirs:
+            return True, "global_config"
+        if not is_dir and name.lower() in self.ignore_files:
+            return True, "global_config"
             
-        # 2. .gitignore (Local Rules)
-        for pattern in self.gitignore_patterns:
-            if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(rel_path, pattern):
-                return True
-                
-        # 3. Global Config
-        if is_dir:
-            if name.lower() in self.ignore_dirs:
-                return True
-        else:
-            if name.lower() in self.ignore_files:
-                return True
-                
-        return False
+        ext = self._get_extension(name) if not is_dir else None
+        if ext and ext in self.ignore_exts:
+            return True, "global_config"
 
-    def _safe_walker(self):
-        for root, dirs, files in os.walk(self.target_dir, topdown=True):
-            rel_root = os.path.relpath(root, self.target_dir)
-            if rel_root == ".":
-                rel_root = ""
+        # Check Repoignore first, then Gitignore
+        for ignore_type, patterns in [("repoignore", self.repoignore_patterns), ("gitignore", self.gitignore_patterns)]:
+            for pattern in patterns:
+                p = pattern[:-1] if pattern.endswith('/') else pattern
+                if pattern.endswith('/') and not is_dir:
+                    continue
+                if fnmatch.fnmatch(name, p) or fnmatch.fnmatch(rel_path, p):
+                    return True, ignore_type
 
-            # Filter directories based on a more robust check
-            original_dirs = list(dirs) # Make a copy to iterate over
-            dirs[:] = [] # Clear the list we will modify
+        return False, None
 
-            for d in original_dirs:
-                rel_dir_path = os.path.join(rel_root, d).replace("\\", "/")
-                
-                # Check if any manually included path is a sub-path of this directory
-                should_traverse_for_override = any(
-                    inc_path.startswith(rel_dir_path + '/') for inc_path in self.manually_included
-                )
-
-                # If the directory itself is not ignored, or we must traverse it
-                # to find a manually included child, then keep it.
-                if not self._is_path_ignored(rel_dir_path, is_dir=True) or should_traverse_for_override:
-                    dirs.append(d)
-
-            yield root, dirs, files
-
-    def generate_tree_text(self):
-        """Generates the directory tree as a string."""
-        tree_lines = ["Directory Tree:", "```text"]
+    def get_final_paths(self):
+        """Phase 1 & 2: Resolves the final flat list of file paths to process."""
+        final_paths = set()
         allowed_extensions = set(self.lang_map.keys())
 
-        for root, dirs, files in self._safe_walker():
-            rel_root = os.path.relpath(root, self.target_dir)
-            if rel_root == ".":
-                rel_root = ""
-            
-            level = rel_root.count(os.sep) if rel_root else 0
-            indent = "    " * level
-            tree_lines.append(f"{indent}{os.path.basename(root)}/")
+        # --- Phase 1: Strict Base Traversal ---
+        for root, dirs, files in os.walk(self.target_dir, topdown=True):
+            rel_root = os.path.relpath(root, self.target_dir).replace("\\", "/")
+            if rel_root == ".": rel_root = ""
 
-            subindent = "    " * (level + 1)
+            # Filter dirs strictly. We never enter ignored dirs.
+            valid_dirs = []
+            for d in dirs:
+                d_rel = f"{rel_root}/{d}" if rel_root else d
+                is_ignored, _ = self._is_path_ignored_by_base(d_rel, is_dir=True)
+                if not is_ignored:
+                    valid_dirs.append(d)
+            dirs[:] = valid_dirs  # Prune os.walk path
+
             for f in files:
-                rel_path = os.path.join(rel_root, f).replace("\\", "/")
+                f_rel = f"{rel_root}/{f}" if rel_root else f
                 
-                # Check overrides and filters
-                if rel_path in self.manually_excluded:
-                    continue
-                if rel_path not in self.manually_included:
-                    if f.lower() in self.ignore_files:
-                        continue
-                    if self._is_path_ignored(rel_path, is_dir=False):
-                        continue
-                    file_extension = os.path.splitext(f)[1].lower()
-                    if file_extension not in allowed_extensions:
-                        continue
-                
-                tree_lines.append(f"{subindent}{f}")
+                if f_rel in self.manually_excluded:
+                    continue  # Manual exclusion overrides
+                    
+                is_ignored, _ = self._is_path_ignored_by_base(f_rel, is_dir=False)
+                if not is_ignored:
+                    ext = self._get_extension(f)
+                    if ext in allowed_extensions:
+                        final_paths.add(f_rel)
 
-    def scan(self):
-        """
-        Scans the target directory and builds a tree structure with full rule info.
-        This is the single source of truth for the project structure.
-        """
+        # --- Phase 2: Separated Logic for Manual Inclusions ---
+        # Direct injection avoids walking through massive ignored folders unnecessarily
+        for man_inc in self.manually_included:
+            full_path = os.path.join(self.target_dir, man_inc)
+            
+            if os.path.isfile(full_path):
+                final_paths.add(man_inc)
+            
+            elif os.path.isdir(full_path):
+                # The user manually included a whole directory that was otherwise ignored.
+                # Walk it and add its files (still respecting extensions & manual exclusions).
+                for root, _, files in os.walk(full_path):
+                    for f in files:
+                        ext = os.path.splitext(f)[1].lower()
+                        if ext in allowed_extensions:
+                            f_rel = os.path.relpath(os.path.join(root, f), self.target_dir).replace("\\", "/")
+                            if f_rel not in self.manually_excluded:
+                                final_paths.add(f_rel)
+
+        return sorted(list(final_paths))
+
+    def generate_tree_text(self, final_paths):
+        """Phase 3: Builds the visual tree strictly from the flat list of final paths."""
+        tree_dict = {}
+        for p in final_paths:
+            parts = p.split("/")
+            curr = tree_dict
+            for part in parts[:-1]:
+                if part not in curr:
+                    curr[part] = {}
+                curr = curr[part]
+            curr[parts[-1]] = None # None signifies a file
+
+        def recurse(node, level=0):
+            lines = []
+            # Sort: folders first (not None), then files (None), alphabetically
+            sorted_keys = sorted(node.keys(), key=lambda k: (node[k] is None, k.lower()))
+            for key in sorted_keys:
+                if node[key] is None:
+                    lines.append("    " * level + key)
+                else:
+                    lines.append("    " * level + key + "/")
+                    lines.extend(recurse(node[key], level + 1))
+            return lines
+
+        lines = ["Directory Tree:", "```text"]
+        if tree_dict:
+            lines.extend(recurse(tree_dict))
+        lines.append("```")
+        return "\n".join(lines)
+
+    def scan_for_gui(self, sub_path=None):
+        """Single source of truth for generating the GUI file tree. Supports lazy loading."""
         all_extensions = set()
-        all_dirs = set()
-
-        def get_rules(rel_path, is_dir=False, ext=None):
-            # This helper builds the rule object for the frontend inspector
-            path_norm = rel_path.replace("\\", "/")
-            name = os.path.basename(path_norm)
-            
-            rules = [
-                {"name": "Manual Override", "status": "not_set"},
-                {"name": ".gitignore", "status": "not_matched"},
-                {"name": "Global Config", "status": "not_matched"}
-            ]
-            
-            if not is_dir:
-                rules.append({"name": "Extension", "status": "supported" if ext in self.lang_map else "unsupported"})
-
-            if path_norm in self.manually_included:
-                rules[0]["status"] = "included"
-            elif path_norm in self.manually_excluded:
-                rules[0]["status"] = "excluded"
-
-            for pattern in self.gitignore_patterns:
-                if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(path_norm, pattern):
-                    rules[1]["status"] = "matched"
-                    break
-            
-            if is_dir:
-                if name.lower() in self.ignore_dirs:
-                    rules[2]["status"] = "matched"
-            else:
-                if name.lower() in self.ignore_files:
-                    rules[2]["status"] = "matched"
-            
-            return rules
-
-        def walk_node(dir_path, rel_prefix=""):
+        
+        def walk_node(dir_path, rel_prefix="", inherited_ignore=False, inherited_reason=None):
             children = []
             try:
                 entries = sorted(os.listdir(dir_path), key=lambda x: (not os.path.isdir(os.path.join(dir_path, x)), x.lower()))
@@ -234,117 +215,96 @@ class RepoLiner:
 
             for entry in entries:
                 full_path = os.path.join(dir_path, entry)
-                rel_path = os.path.join(rel_prefix, entry) if rel_prefix else entry
-                rel_path_norm = rel_path.replace("\\", "/")
+                rel_path = f"{rel_prefix}/{entry}" if rel_prefix else entry
+                is_dir = os.path.isdir(full_path)
+                
+                is_ignored, reason = self._is_path_ignored_by_base(rel_path, is_dir=is_dir)
+                
+                # If a parent was ignored, all children inherit that ignored status
+                if inherited_ignore and not is_ignored:
+                    is_ignored = True
+                    reason = inherited_reason
 
-                if os.path.isdir(full_path):
-                    entry_lower = entry.lower()
-                    rules = get_rules(rel_path_norm, is_dir=True)
-                    
-                    # Determine exclusion status
-                    excluded = False
-                    reason = None
-                    if rules[1]["status"] == "matched":
-                        excluded = True
-                        reason = "gitignore"
-                    elif rules[2]["status"] == "matched":
-                        excluded = True
-                        reason = "repoliner_config"
-                    
-                    if rules[0]["status"] == "included":
-                        excluded = False
-                    elif rules[0]["status"] == "excluded":
-                        excluded = True
+                ext = self._get_extension(entry) if not is_dir else None
+                if ext:
+                    all_extensions.add(ext)
 
-                    all_dirs.add(entry_lower)
-
-                    node = {
-                        "name": entry,
-                        "path": rel_path_norm,
-                        "type": "dir",
-                        "excluded": excluded,
-                        "reason": reason,
-                        "rules": rules,
-                        "children": walk_node(full_path, rel_path),
-                    }
-                    children.append(node)
-                else:
-                    # File
-                    ext = os.path.splitext(entry)[1].lower()
-                    if ext:
-                        all_extensions.add(ext)
-
-                    rules = get_rules(rel_path_norm, is_dir=False, ext=ext)
-                    
-                    excluded = False
-                    reason = None
-                    if rules[1]["status"] == "matched":
-                        excluded = True
-                        reason = "gitignore"
-                    elif rules[2]["status"] == "matched":
-                        excluded = True
-                        reason = "repoliner_config"
-                    elif rules[3]["status"] == "unsupported":
-                        excluded = True
+                rules = [
+                    {"name": "Manual Override", "status": "not_set"},
+                    {"name": ".repoignore", "status": "matched" if reason == "repoignore" else "not_matched"},
+                    {"name": ".gitignore", "status": "matched" if reason == "gitignore" else "not_matched"},
+                    {"name": "Ignored Extension", "status": "matched" if (ext and ext in self.ignore_exts) else "not_matched"},
+                    {"name": "Global Config", "status": "matched" if reason in ["global_config", "parent_ignored"] else "not_matched"}
+                ]
+                
+                if not is_dir:
+                    is_supported = ext in self.lang_map
+                    rules.append({"name": "Extension", "status": "supported" if is_supported else "unsupported"})
+                    if not is_ignored and not is_supported:
+                        is_ignored = True
                         reason = "extension_not_supported"
 
-                    if rules[0]["status"] == "included":
-                        excluded = False
-                    elif rules[0]["status"] == "excluded":
-                        excluded = True
+                # Check if an ignored directory actually has contents to show the expand arrow
+                has_hidden = False
+                if is_dir and is_ignored:
+                    try:
+                        with os.scandir(full_path) as it:
+                            has_hidden = any(it)
+                    except: pass
 
-                    node = {
-                        "name": entry,
-                        "path": rel_path_norm,
-                        "type": "file",
-                        "ext": ext,
-                        "excluded": excluded,
-                        "reason": reason,
-                        "rules": rules,
-                    }
-                    children.append(node)
-
+                node = {
+                    "name": entry,
+                    "path": rel_path,
+                    "type": "dir" if is_dir else "file",
+                    "excluded": is_ignored,
+                    "reason": reason,
+                    "rules": rules,
+                    "has_hidden": has_hidden,
+                    # Stop traversing if ignored to save performance. GUI will lazy-load it.
+                    "children": [] if (is_dir and is_ignored) else (walk_node(full_path, rel_path, is_ignored, reason) if is_dir else None)
+                }
+                
+                if not is_dir:
+                    del node["children"]
+                    node["ext"] = ext
+                    
+                children.append(node)
             return children
 
+        # If a sub_path is provided, we are lazy-loading an ignored directory
+        if sub_path:
+            full_sub_path = os.path.join(self.target_dir, sub_path)
+            return walk_node(full_sub_path, sub_path, inherited_ignore=True, inherited_reason="global_config")
+
+        # Normal full scan
         tree = walk_node(self.target_dir)
-
-        # Categorize extensions
-        supported_exts = set(self.lang_map.keys())
         all_ext_list = sorted(all_extensions)
-        included_extensions = [e for e in all_ext_list if e in supported_exts]
-        excluded_extensions = [e for e in all_ext_list if e not in supported_exts]
+        supported_exts = set(self.lang_map.keys())
 
-        # Categorize directories
+        all_dirs = set()
+        for root, dirs, _ in os.walk(self.target_dir):
+            for d in dirs: all_dirs.add(d.lower())
         all_dirs_list = sorted(all_dirs)
-        included_dirs = [d for d in all_dirs_list if d not in self.ignore_dirs]
-        excluded_dirs = [d for d in all_dirs_list if d in self.ignore_dirs]
 
         return {
-            "project_name": os.path.basename(os.path.normpath(self.target_dir)),
+            "project_name": os.path.basename(self.target_dir),
             "tree": tree,
             "gitignore_patterns": self.gitignore_patterns,
+            "repoignore_patterns": self.repoignore_patterns,
             "all_extensions": all_ext_list,
-            "included_extensions": included_extensions,
-            "excluded_extensions": excluded_extensions,
-            "lang_map": self.lang_map,
-            "included_dirs": included_dirs,
-            "excluded_dirs": excluded_dirs,
+            "included_extensions": [e for e in all_ext_list if e in supported_exts],
+            "excluded_extensions": [e for e in all_ext_list if e not in supported_exts],
+            "ignore_exts": list(self.ignore_exts),
+            "included_dirs": [d for d in all_dirs_list if d not in self.ignore_dirs],
+            "excluded_dirs": [d for d in all_dirs_list if d in self.ignore_dirs],
             "ignore_files": list(self.ignore_files),
+            "lang_map": self.lang_map
         }
 
     def merge(self, mode="folder"):
-        """Performs the merge and returns a status dictionary."""
-        result = {
-            "success": False,
-            "output_path": None,
-            "files_merged": 0,
-            "total_chars": 0,
-            "file_stats": [],
-            "error": None,
-        }
+        result = { "success": False, "output_path": None, "files_merged": 0, "total_chars": 0, "file_stats": [], "error": None }
 
         try:
-            # --- OUTPUT SETUP ---
             if mode == "dump":
                 output_filepath = os.path.join(self.target_dir, "repoliner_dump.md")
             else:
@@ -352,87 +312,53 @@ class RepoLiner:
                 os.makedirs(output_dir, exist_ok=True)
                 project_name = os.path.basename(os.path.normpath(self.target_dir))
                 timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
-                output_filename = f"{project_name} {timestamp}.md"
-                output_filepath = os.path.join(output_dir, output_filename)
+                output_filepath = os.path.join(output_dir, f"{project_name} {timestamp}.md")
 
             result["output_path"] = output_filepath
+            final_paths = self.get_final_paths()
+            tree_content = self.generate_tree_text(final_paths)
+            
+            # Send the tree back to the frontend
+            result["tree_content"] = tree_content 
 
             with open(output_filepath, "w", encoding="utf-8") as outfile:
-                project_name = os.path.basename(os.path.normpath(self.target_dir))
-                outfile.write(f"# RepoLiner: Merged Code for '{project_name}'\n")
-                timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
-                outfile.write(f"Scanned on: {timestamp}\n\n")
-
-                tree_content = self.generate_tree_text()
+                outfile.write(f"# RepoLiner: Merged Code for '{os.path.basename(self.target_dir)}'\n")
+                outfile.write(f"Scanned on: {datetime.now().strftime('%Y-%m-%d %H-%M-%S')}\n\n")
                 outfile.write(tree_content)
                 outfile.write("\n\n" + ("=" * 50) + "\n\n")
 
                 total_chars = len(tree_content)
-                found_files_count = 0
-                file_stats = []
-                allowed_extensions = set(self.lang_map.keys())
+                
+                for rel_path in final_paths:
+                    full_path = os.path.join(self.target_dir, rel_path)
+                    file_extension = os.path.splitext(rel_path)[1].lower()
 
-                for root, dirs, files in self._safe_walker():
-                    rel_root = os.path.relpath(root, self.target_dir)
-                    if rel_root == ".":
-                        rel_root = ""
+                    if os.path.abspath(full_path) == os.path.abspath(output_filepath):
+                        continue
 
-                    for filename in files:
-                        file_path = os.path.join(root, filename)
-                        relative_path = os.path.relpath(file_path, self.target_dir).replace("\\", "/")
-                        file_extension = os.path.splitext(filename)[1].lower()
+                    try:
+                        with open(full_path, "r", encoding="utf-8", errors="ignore") as infile:
+                            content = infile.read()
 
-                        if os.path.abspath(file_path) == os.path.abspath(output_filepath):
-                            continue
+                        lang_identifier = self.lang_map.get(file_extension, "text")
+                        markdown_chunk = (
+                            f'\n<file path="{rel_path}">\n'
+                            f"\n~~~~{lang_identifier}\n"
+                            f"\n{content.strip()}\n"
+                            "\n~~~~\n"
+                            "</file>\n\n"
+                        )
+                        outfile.write(markdown_chunk)
 
-                        # Check overrides and filters
-                        should_include = False
-                        if relative_path in self.manually_included:
-                            should_include = True
-                        elif relative_path in self.manually_excluded:
-                            should_include = False
-                        else:
-                            if filename.lower() in self.ignore_files:
-                                should_include = False
-                            elif self._is_path_ignored(relative_path, is_dir=False):
-                                should_include = False
-                            elif file_extension in allowed_extensions:
-                                should_include = True
+                        chunk_len = len(markdown_chunk)
+                        total_chars += chunk_len
+                        result["file_stats"].append((estimate_tokens(markdown_chunk), rel_path))
+                        result["files_merged"] += 1
+                    except Exception:
+                        pass
 
-                        if should_include:
-                            try:
-                                with open(
-                                    file_path, "r", encoding="utf-8", errors="ignore"
-                                ) as infile:
-                                    content = infile.read()
-
-                                found_files_count += 1
-                                lang_identifier = self.lang_map.get(
-                                    file_extension, "text"
-                                )
-
-                                markdown_chunk = (
-                                    f'\n<file path="{relative_path}">\n'
-                                    f"\n~~~~{lang_identifier}\n"
-                                    f"\n{content.strip()}\n"
-                                    "\n~~~~\n"
-                                    "</file>\n\n"
-                                )
-                                outfile.write(markdown_chunk)
-
-                                chunk_len = len(markdown_chunk)
-                                total_chars += chunk_len
-                                file_tokens = estimate_tokens(markdown_chunk)
-                                file_stats.append((file_tokens, relative_path))
-
-                            except Exception as e:
-                                # We could log this or add it to an errors list in result
-                                pass
-
-                result["success"] = True
-                result["files_merged"] = found_files_count
-                result["total_chars"] = total_chars
-                result["file_stats"] = file_stats
+            result["total_chars"] = total_chars
+            result["success"] = True
 
         except Exception as e:
             result["success"] = False

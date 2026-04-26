@@ -24,5 +24,9 @@ DEFAULT_CONFIG = {
         ".sh": "bash", ".txt": "text", ".ts": "typescript", ".tsx": "typescript",
         ".rs": "rust", ".bat": "batch", ".yaml": "yaml", ".yml": "yml",
         ".hlsl": "hlsl", ".toml": "toml", ".gitignore": "gitignore", "d.ts": "d.ts"
-    }
+    },
+    "ignore_exts": [
+        ".exe", ".dll", ".so", ".dylib", ".pyc", ".pyo", ".pyd",
+        ".db", ".sqlite", ".log", ".tmp", ".temp"
+    ]
 }

@@ -589,6 +589,7 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    justify-content: flex-end;
 }
 
 .stat-value {
@@ -602,6 +603,7 @@ body::before {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-top: 2px;
 }
 
 .stat-value.green { color: var(--success); }
@@ -759,6 +761,29 @@ body::before {
     background: var(--accent-glow);
     color: var(--accent);
     border-color: var(--accent);
+}
+
+.config-actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.config-paradigm {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.config-paradigm span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .add-ext-form {

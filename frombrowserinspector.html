@@ -1,0 +1,1752 @@
+<html lang="en">
+
+<head>
+    <style data-merge-styles="true"></style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoLiner — Visual Code Consolidator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <!-- ════════════════════════ HEADER ════════════════════════ -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">📦</div>
+                <span>RepoLiner</span>
+                <span class="version-badge">GUI</span>
+            </div>
+        </header>
+
+        <!-- ════════════════════════ PATH BAR ════════════════════════ -->
+        <div class="path-bar">
+            <label>📂 Project Root</label>
+            <input type="text" id="pathInput" class="path-input" placeholder="Paste project path or click Browse...">
+            <button class="btn" id="btnBrowse" onclick="browseFolder()">Browse</button>
+            <button class="btn btn-primary" id="btnScan" onclick="scanProject()">Scan</button>
+        </div>
+
+        <!-- ════════════════════════ MAIN CONTENT ════════════════════════ -->
+        <div class="main-content">
+            <!-- ── Left Panel: Project Tree ── -->
+            <div class="panel" id="treePanel" style="position: relative;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        🌳 Project Tree
+                        <span class="panel-badge" id="treeCount">37 items</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="btn" style="padding:4px 10px;font-size:0.72rem;"
+                            onclick="treeCheckAll(true)">All</button>
+                        <button class="btn" style="padding:4px 10px;font-size:0.72rem;"
+                            onclick="treeCheckAll(false)">None</button>
+                    </div>
+                </div>
+                <div class="panel-body" id="treeBody">
+                    <div class="tree-node" data-path=".git" data-type="dir"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22matched%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('.git')"><span class="tree-toggle "
+                                data-lazy="true">▶</span><input type="checkbox" class="tree-checkbox" checked=""
+                                data-path=".git" data-orig-excluded="true"><span class="tree-icon">📂</span><span
+                                class="tree-label excluded">.git</span><span class="tree-pin"
+                                title="Manual Override">📌</span><span class="tree-reason reason-config">config</span>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path="configs" data-type="dir"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('configs')"><span class="tree-toggle ">▶</span><input
+                                type="checkbox" class="tree-checkbox" checked="" data-path="configs"
+                                data-orig-excluded="false"><span class="tree-icon">📂</span><span
+                                class="tree-label ">configs</span></div>
+                        <div class="tree-children">
+                            <div class="tree-node" data-path="configs/extensions.json" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('configs/extensions.json')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="configs/extensions.json" data-orig-excluded="false"><span
+                                        class="tree-icon">📋</span><span class="tree-label ">extensions.json</span>
+                                </div>
+                            </div>
+                            <div class="tree-node" data-path="configs/ignore_dirs.json" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('configs/ignore_dirs.json')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="configs/ignore_dirs.json" data-orig-excluded="false"><span
+                                        class="tree-icon">📋</span><span class="tree-label ">ignore_dirs.json</span>
+                                </div>
+                            </div>
+                            <div class="tree-node" data-path="configs/ignore_files.json" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('configs/ignore_files.json')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="configs/ignore_files.json"
+                                        data-orig-excluded="false"><span class="tree-icon">📋</span><span
+                                        class="tree-label ">ignore_files.json</span></div>
+                            </div>
+                            <div class="tree-node" data-path="configs/settings.json" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('configs/settings.json')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="configs/settings.json" data-orig-excluded="false"><span
+                                        class="tree-icon">📋</span><span class="tree-label ">settings.json</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path="output" data-type="dir"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22matched%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('output')"><span class="tree-toggle "
+                                data-lazy="true">▶</span><input type="checkbox" class="tree-checkbox" data-path="output"
+                                data-orig-excluded="true"><span class="tree-icon">📂</span><span
+                                class="tree-label excluded">output</span><span
+                                class="tree-reason reason-config">config</span></div>
+                    </div>
+                    <div class="tree-node" data-path="scripts" data-type="dir"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('scripts')"><span class="tree-toggle ">▶</span><input
+                                type="checkbox" class="tree-checkbox" checked="" data-path="scripts"
+                                data-orig-excluded="false"><span class="tree-icon">📂</span><span
+                                class="tree-label ">scripts</span></div>
+                        <div class="tree-children">
+                            <div class="tree-node" data-path="scripts/__pycache__" data-type="dir"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22matched%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('scripts/__pycache__')"><span
+                                        class="tree-toggle " data-lazy="true">▶</span><input type="checkbox"
+                                        class="tree-checkbox" data-path="scripts/__pycache__"
+                                        data-orig-excluded="true"><span class="tree-icon">📂</span><span
+                                        class="tree-label excluded">__pycache__</span><span
+                                        class="tree-reason reason-config">config</span></div>
+                            </div>
+                            <div class="tree-node" data-path="scripts/static" data-type="dir"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('scripts/static')"><span
+                                        class="tree-toggle ">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="scripts/static" data-orig-excluded="false"><span
+                                        class="tree-icon">📂</span><span class="tree-label ">static</span></div>
+                                <div class="tree-children">
+                                    <div class="tree-node" data-path="scripts/static/css" data-type="dir"
+                                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%5D">
+                                        <div class="tree-row" onclick="inspectNode('scripts/static/css')"><span
+                                                class="tree-toggle ">▶</span><input type="checkbox"
+                                                class="tree-checkbox" checked="" data-path="scripts/static/css"
+                                                data-orig-excluded="false"><span class="tree-icon">📂</span><span
+                                                class="tree-label ">css</span></div>
+                                        <div class="tree-children">
+                                            <div class="tree-node" data-path="scripts/static/css/style.css"
+                                                data-type="file"
+                                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                                <div class="tree-row"
+                                                    onclick="inspectNode('scripts/static/css/style.css')"><span
+                                                        class="tree-toggle empty">▶</span><input type="checkbox"
+                                                        class="tree-checkbox" checked=""
+                                                        data-path="scripts/static/css/style.css"
+                                                        data-orig-excluded="false"><span
+                                                        class="tree-icon">🎨</span><span
+                                                        class="tree-label ">style.css</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node" data-path="scripts/static/js" data-type="dir"
+                                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%5D">
+                                        <div class="tree-row" onclick="inspectNode('scripts/static/js')"><span
+                                                class="tree-toggle ">▶</span><input type="checkbox"
+                                                class="tree-checkbox" checked="" data-path="scripts/static/js"
+                                                data-orig-excluded="false"><span class="tree-icon">📂</span><span
+                                                class="tree-label ">js</span></div>
+                                        <div class="tree-children">
+                                            <div class="tree-node" data-path="scripts/static/js/app.js" data-type="file"
+                                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                                <div class="tree-row" onclick="inspectNode('scripts/static/js/app.js')">
+                                                    <span class="tree-toggle empty">▶</span><input type="checkbox"
+                                                        class="tree-checkbox" checked=""
+                                                        data-path="scripts/static/js/app.js"
+                                                        data-orig-excluded="false"><span class="tree-icon">⚡</span><span
+                                                        class="tree-label ">app.js</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tree-node" data-path="scripts/config_defaults.py" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('scripts/config_defaults.py')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="scripts/config_defaults.py"
+                                        data-orig-excluded="false"><span class="tree-icon">🐍</span><span
+                                        class="tree-label ">config_defaults.py</span></div>
+                            </div>
+                            <div class="tree-node" data-path="scripts/core.py" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('scripts/core.py')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="scripts/core.py" data-orig-excluded="false"><span
+                                        class="tree-icon">🐍</span><span class="tree-label ">core.py</span></div>
+                            </div>
+                            <div class="tree-node" data-path="scripts/gui.html" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('scripts/gui.html')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="scripts/gui.html" data-orig-excluded="false"><span
+                                        class="tree-icon">🌐</span><span class="tree-label ">gui.html</span></div>
+                            </div>
+                            <div class="tree-node" data-path="scripts/gui_server.py" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('scripts/gui_server.py')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="scripts/gui_server.py" data-orig-excluded="false"><span
+                                        class="tree-icon">🐍</span><span class="tree-label ">gui_server.py</span></div>
+                            </div>
+                            <div class="tree-node" data-path="scripts/merge_cli.py" data-type="file"
+                                data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                                <div class="tree-row" onclick="inspectNode('scripts/merge_cli.py')"><span
+                                        class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                        checked="" data-path="scripts/merge_cli.py" data-orig-excluded="false"><span
+                                        class="tree-icon">🐍</span><span class="tree-label ">merge_cli.py</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path=".flake8" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22unsupported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('.flake8')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                data-path=".flake8" data-orig-excluded="true"><span class="tree-icon">📄</span><span
+                                class="tree-label excluded">.flake8</span><span
+                                class="tree-reason reason-ext">ext</span></div>
+                    </div>
+                    <div class="tree-node" data-path=".gitattributes" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22unsupported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('.gitattributes')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                data-path=".gitattributes" data-orig-excluded="true"><span
+                                class="tree-icon">📄</span><span class="tree-label excluded">.gitattributes</span><span
+                                class="tree-reason reason-ext">ext</span></div>
+                    </div>
+                    <div class="tree-node" data-path=".gitattributes copy" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22unsupported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('.gitattributes copy')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                data-path=".gitattributes copy" data-orig-excluded="true"><span
+                                class="tree-icon">📄</span><span class="tree-label excluded">.gitattributes
+                                copy</span><span class="tree-reason reason-ext">ext</span></div>
+                    </div>
+                    <div class="tree-node" data-path=".gitignore" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22unsupported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('.gitignore')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                data-path=".gitignore" data-orig-excluded="true"><span class="tree-icon">📄</span><span
+                                class="tree-label excluded">.gitignore</span><span
+                                class="tree-reason reason-ext">ext</span></div>
+                    </div>
+                    <div class="tree-node" data-path=".pre-commit-config.yaml" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('.pre-commit-config.yaml')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path=".pre-commit-config.yaml" data-orig-excluded="false"><span
+                                class="tree-icon">⚙️</span><span class="tree-label ">.pre-commit-config.yaml</span>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path="0-initialize-git-repo.bat" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('0-initialize-git-repo.bat')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="0-initialize-git-repo.bat" data-orig-excluded="false"><span
+                                class="tree-icon">🖥️</span><span class="tree-label ">0-initialize-git-repo.bat</span>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path="1-install-miniconda.bat" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('1-install-miniconda.bat')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="1-install-miniconda.bat" data-orig-excluded="false"><span
+                                class="tree-icon">🖥️</span><span class="tree-label ">1-install-miniconda.bat</span>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path="2-create-and-install.bat" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('2-create-and-install.bat')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="2-create-and-install.bat" data-orig-excluded="false"><span
+                                class="tree-icon">🖥️</span><span class="tree-label ">2-create-and-install.bat</span>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path="3-run-quality-checks.bat" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('3-run-quality-checks.bat')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="3-run-quality-checks.bat" data-orig-excluded="false"><span
+                                class="tree-icon">🖥️</span><span class="tree-label ">3-run-quality-checks.bat</span>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path="4-run-pre-commit.bat" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('4-run-pre-commit.bat')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="4-run-pre-commit.bat" data-orig-excluded="false"><span
+                                class="tree-icon">🖥️</span><span class="tree-label ">4-run-pre-commit.bat</span></div>
+                    </div>
+                    <div class="tree-node" data-path="CHANGELOG.md" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('CHANGELOG.md')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="CHANGELOG.md" data-orig-excluded="false"><span
+                                class="tree-icon">📝</span><span class="tree-label ">CHANGELOG.md</span></div>
+                    </div>
+                    <div class="tree-node" data-path="CONTRIBUTING.md" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('CONTRIBUTING.md')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="CONTRIBUTING.md" data-orig-excluded="false"><span
+                                class="tree-icon">📝</span><span class="tree-label ">CONTRIBUTING.md</span></div>
+                    </div>
+                    <div class="tree-node" data-path="environment.yml" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('environment.yml')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="environment.yml" data-orig-excluded="false"><span
+                                class="tree-icon">⚙️</span><span class="tree-label ">environment.yml</span></div>
+                    </div>
+                    <div class="tree-node" data-path="frombrowserinspector.html" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('frombrowserinspector.html')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="frombrowserinspector.html" data-orig-excluded="false"><span
+                                class="tree-icon">🌐</span><span class="tree-label ">frombrowserinspector.html</span>
+                        </div>
+                    </div>
+                    <div class="tree-node" data-path="index.html" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('index.html')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="index.html" data-orig-excluded="false"><span
+                                class="tree-icon">🌐</span><span class="tree-label ">index.html</span></div>
+                    </div>
+                    <div class="tree-node" data-path="launch.bat" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('launch.bat')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="launch.bat" data-orig-excluded="false"><span
+                                class="tree-icon">🖥️</span><span class="tree-label ">launch.bat</span></div>
+                    </div>
+                    <div class="tree-node" data-path="LICENSE" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22unsupported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('LICENSE')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                data-path="LICENSE" data-orig-excluded="true"><span class="tree-icon">📄</span><span
+                                class="tree-label excluded">LICENSE</span><span
+                                class="tree-reason reason-ext">ext</span></div>
+                    </div>
+                    <div class="tree-node" data-path="README.md" data-type="file"
+                        data-rules="%5B%7B%22name%22%3A%22Manual%20Override%22%2C%22status%22%3A%22not_set%22%7D%2C%7B%22name%22%3A%22.gitignore%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Global%20Config%22%2C%22status%22%3A%22not_matched%22%7D%2C%7B%22name%22%3A%22Extension%22%2C%22status%22%3A%22supported%22%7D%5D">
+                        <div class="tree-row" onclick="inspectNode('README.md')"><span
+                                class="tree-toggle empty">▶</span><input type="checkbox" class="tree-checkbox"
+                                checked="" data-path="README.md" data-orig-excluded="false"><span
+                                class="tree-icon">📝</span><span class="tree-label ">README.md</span></div>
+                    </div>
+                </div>
+                <div class="loading-overlay" id="treePanelLoader">
+                    <div class="spinner"></div>
+                    <p>Scanning directory...</p>
+                </div>
+            </div>
+
+            <!-- ── Right Panel: Config Tabs ── -->
+            <div class="panel" id="configPanel">
+                <div class="tabs">
+                    <button class="tab-btn" onclick="switchTab('inspector', this)">Inspector</button>
+                    <button class="tab-btn active" onclick="switchTab('extensions', this)">1. Extensions</button>
+                    <button class="tab-btn" onclick="switchTab('gitignore', this)">2. Gitignore</button>
+                    <button class="tab-btn" onclick="switchTab('folders', this)">3. Folders</button>
+                    <button class="tab-btn" onclick="switchTab('files', this)">4. Files</button>
+                </div>
+                <div class="panel-body" id="configBody">
+                    <!-- Inspector Tab -->
+                    <div class="tab-content" id="tab-inspector">
+                        <div class="inspector-panel">
+                            <div class="inspector-header">
+                                <div class="inspector-path">.git/hooks</div>
+                                <div class="inspector-final-status status-included">
+                                    FINAL RESULT: INCLUDED ✅
+                                </div>
+                            </div>
+                            <div class="inspector-hierarchy">
+                                <div class="hierarchy-title">Evaluation Waterfall</div>
+
+                                <div class="inspection-item">
+                                    <div class="inspection-header">
+                                        <span class="inspection-name">0. Default State</span>
+                                        <span class="inspection-status matched">Included</span>
+                                    </div>
+                                </div>
+
+                                <div class="inspection-item">
+                                    <div class="inspection-header">
+                                        <span class="inspection-name">2. .gitignore Check</span>
+                                        <span class="inspection-status ">Passed</span>
+                                    </div>
+                                </div>
+                                <div class="inspection-item">
+                                    <div class="inspection-header">
+                                        <span class="inspection-name">3 &amp; 4. Global Config Check</span>
+                                        <span class="inspection-status matched">Excluded (Matched)</span>
+                                    </div>
+                                </div>
+                                <div class="inspection-item"
+                                    style="border-color: var(--accent); background: rgba(14, 165, 233, 0.05);">
+                                    <div class="inspection-header">
+                                        <span class="inspection-name">5. Manual Override</span>
+                                        <span class="inspection-status matched">
+                                            Forced Include ✅
+                                        </span>
+                                    </div>
+                                    <div class="inspection-desc">Your explicit clicks in the tree override all rules
+                                        above.</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Extensions Tab -->
+                    <div class="tab-content active" id="tab-extensions">
+                        <div class="config-paradigm">
+                            <span>[ ] Unchecked = Excluded</span>
+                            <span>[✓] Checked = Included</span>
+                        </div>
+                        <div class="add-ext-form">
+                            <input type="text" id="newExtInput" class="add-ext-input" placeholder=".ext"
+                                style="width: 60px;">
+                            <input type="text" id="newLangInput" class="add-ext-input" placeholder="lang (e.g. python)"
+                                style="flex:1;">
+                            <button class="btn btn-ghost" onclick="addNewExtension()">Add</button>
+                        </div>
+                        <div class="config-header">
+                            <span class="config-title">✅ Included Extensions</span>
+                            <button class="btn btn-ghost" onclick="saveActiveConfig('extensions')">Save as
+                                Default</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".bat" data-lang="batch" class="ext-checkbox">
+                            <span class="list-item-label">.bat</span>
+                            <span class="list-item-lang">batch</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.bat')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".css" data-lang="css" class="ext-checkbox">
+                            <span class="list-item-label">.css</span>
+                            <span class="list-item-lang">css</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.css')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".html" data-lang="html" class="ext-checkbox">
+                            <span class="list-item-label">.html</span>
+                            <span class="list-item-lang">html</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.html')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".js" data-lang="javascript"
+                                class="ext-checkbox">
+                            <span class="list-item-label">.js</span>
+                            <span class="list-item-lang">javascript</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.js')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".json" data-lang="json" class="ext-checkbox">
+                            <span class="list-item-label">.json</span>
+                            <span class="list-item-lang">json</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.json')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".md" data-lang="markdown"
+                                class="ext-checkbox">
+                            <span class="list-item-label">.md</span>
+                            <span class="list-item-lang">markdown</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.md')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".py" data-lang="python" class="ext-checkbox">
+                            <span class="list-item-label">.py</span>
+                            <span class="list-item-lang">python</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.py')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".yaml" data-lang="yaml" class="ext-checkbox">
+                            <span class="list-item-label">.yaml</span>
+                            <span class="list-item-lang">yaml</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.yaml')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value=".yml" data-lang="yml" class="ext-checkbox">
+                            <span class="list-item-label">.yml</span>
+                            <span class="list-item-lang">yml</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('extensions', '.yml')">×</button>
+                        </div>
+                    </div>
+                    <!-- Gitignore Tab -->
+                    <div class="tab-content" id="tab-gitignore">
+                        <div class="config-paradigm">
+                            <span>[ ] Unchecked = Excluded</span>
+                            <span>[✓] Checked = Included</span>
+                        </div>
+                        <div class="config-header"><span class="config-title">❌ Excluded by .gitignore</span></div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="__pycache__/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">__pycache__/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.py[cod]" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.py[cod]</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*$py.class" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*$py.class</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.so" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.so</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".Python" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.Python</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="build/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">build/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="develop-eggs/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">develop-eggs/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="dist/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">dist/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="downloads/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">downloads/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="eggs/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">eggs/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".eggs/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.eggs/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="lib/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">lib/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="lib64/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">lib64/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="parts/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">parts/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="sdist/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">sdist/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="var/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">var/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="wheels/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">wheels/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="share/python-wheels/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">share/python-wheels/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.egg-info/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.egg-info/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".installed.cfg" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.installed.cfg</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.egg" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.egg</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="MANIFEST" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">MANIFEST</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.manifest" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.manifest</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.spec" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.spec</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="pip-log.txt" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">pip-log.txt</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="pip-delete-this-directory.txt"
+                                class="gitignore-checkbox">
+                            <span class="list-item-label"
+                                style="color:var(--text-muted)">pip-delete-this-directory.txt</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="htmlcov/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">htmlcov/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".tox/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.tox/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".nox/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.nox/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".coverage" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.coverage</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".coverage.*" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.coverage.*</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".cache" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.cache</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="nosetests.xml" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">nosetests.xml</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="coverage.xml" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">coverage.xml</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.cover" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.cover</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.py,cover" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.py,cover</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".hypothesis/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.hypothesis/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".pytest_cache/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.pytest_cache/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="cover/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">cover/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.mo" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.mo</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.pot" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.pot</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.log" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.log</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="local_settings.py" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">local_settings.py</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="db.sqlite3" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">db.sqlite3</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="db.sqlite3-journal" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">db.sqlite3-journal</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="instance/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">instance/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".webassets-cache" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.webassets-cache</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".scrapy" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.scrapy</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="docs/_build/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">docs/_build/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".pybuilder/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.pybuilder/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="target/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">target/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".ipynb_checkpoints" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.ipynb_checkpoints</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="profile_default/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">profile_default/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="ipython_config.py" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">ipython_config.py</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".pdm.toml" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.pdm.toml</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".pdm-python" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.pdm-python</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".pdm-build/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.pdm-build/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="__pypackages__/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">__pypackages__/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="celerybeat-schedule" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">celerybeat-schedule</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="celerybeat.pid" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">celerybeat.pid</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="*.sage.py" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">*.sage.py</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".env" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.env</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".venv" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.venv</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="env/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">env/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="venv/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">venv/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="ENV/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">ENV/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="env.bak/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">env.bak/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="venv.bak/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">venv.bak/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".spyderproject" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.spyderproject</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".spyproject" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.spyproject</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".ropeproject" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.ropeproject</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="/site" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">/site</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".mypy_cache/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.mypy_cache/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".dmypy.json" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.dmypy.json</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="dmypy.json" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">dmypy.json</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".pyre/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.pyre/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".pytype/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.pytype/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="cython_debug/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">cython_debug/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".ruff_cache/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.ruff_cache/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".pypirc" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.pypirc</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".cursorignore" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.cursorignore</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value=".cursorindexingignore" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">.cursorindexingignore</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="output/" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">output/</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                        <div class="list-item">
+                            <!-- UNCHECKED by default, meaning it is Excluded -->
+                            <input type="checkbox" data-value="repoliner_dump.md" class="gitignore-checkbox">
+                            <span class="list-item-label" style="color:var(--text-muted)">repoliner_dump.md</span>
+                            <span class="tree-reason reason-gitignore">.gitignore</span>
+                        </div>
+                    </div>
+                    <!-- Folders Tab -->
+                    <div class="tab-content" id="tab-folders">
+                        <div class="config-paradigm">
+                            <span>[ ] Unchecked = Excluded</span>
+                            <span>[✓] Checked = Included</span>
+                        </div>
+                        <div class="config-header">
+                            <span class="config-title">❌ Excluded Folders</span>
+                            <button class="btn btn-ghost" onclick="saveActiveConfig('ignore_dirs')">Save as
+                                Default</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value=".git" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">.git</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_dirs', '.git')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value="__pycache__" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">__pycache__</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_dirs', '__pycache__')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value="output" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">output</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_dirs', 'output')">×</button>
+                        </div>
+                        <div class="config-header"><span class="config-title">✅ Included Folders</span></div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="04" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">04</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="05" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">05</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="06" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">06</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="07" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">07</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="0a" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">0a</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="0b" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">0b</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="0c" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">0c</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="0f" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">0f</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="10" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">10</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="13" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">13</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="14" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">14</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="15" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">15</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="16" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">16</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="17" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">17</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="1b" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">1b</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="21" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">21</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="28" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">28</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="2a" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">2a</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="2b" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">2b</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="2c" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">2c</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="2e" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">2e</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="2f" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">2f</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="30" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">30</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="32" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">32</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="35" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">35</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="38" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">38</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="3c" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">3c</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="3f" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">3f</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="42" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">42</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="44" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">44</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="45" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">45</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="47" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">47</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="49" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">49</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="4b" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">4b</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="4d" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">4d</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="4e" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">4e</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="51" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">51</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="57" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">57</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="59" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">59</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="5a" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">5a</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="5b" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">5b</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="5e" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">5e</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="65" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">65</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="6b" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">6b</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="72" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">72</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="74" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">74</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="79" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">79</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="7b" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">7b</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="7c" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">7c</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="7e" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">7e</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="7f" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">7f</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="81" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">81</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="83" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">83</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="84" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">84</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="85" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">85</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="86" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">86</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="8c" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">8c</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="8d" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">8d</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="8f" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">8f</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="93" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">93</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="94" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">94</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="95" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">95</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="96" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">96</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="97" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">97</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="98" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">98</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="99" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">99</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="9b" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">9b</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="9e" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">9e</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="a0" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">a0</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="a5" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">a5</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="a6" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">a6</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="ab" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">ab</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="ae" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">ae</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="af" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">af</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="b3" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">b3</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="b4" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">b4</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="b6" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">b6</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="b9" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">b9</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="ba" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">ba</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="bb" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">bb</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="c2" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">c2</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="c3" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">c3</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="c5" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">c5</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="c9" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">c9</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="ca" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">ca</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="cc" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">cc</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="configs" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">configs</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="css" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">css</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="d4" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">d4</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="d7" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">d7</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="d8" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">d8</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="dd" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">dd</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="de" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">de</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="df" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">df</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="e4" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">e4</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="e6" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">e6</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="eb" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">eb</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="ef" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">ef</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="f4" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">f4</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="f8" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">f8</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="f9" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">f9</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="fc" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">fc</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="heads" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">heads</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="hooks" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">hooks</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="info" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">info</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="js" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">js</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="logs" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">logs</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="objects" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">objects</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="origin" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">origin</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="pack" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">pack</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="refs" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">refs</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="remotes" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">remotes</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="scripts" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">scripts</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="static" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">static</span>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" checked="" data-value="tags" class="dir-checkbox">
+                            <span class="tree-icon">📂</span>
+                            <span class="list-item-label">tags</span>
+                        </div>
+                    </div>
+                    <!-- Files Tab -->
+                    <div class="tab-content" id="tab-files">
+                        <div class="config-paradigm">
+                            <span>[ ] Unchecked = Excluded</span>
+                            <span>[✓] Checked = Included</span>
+                        </div>
+                        <div class="config-header">
+                            <span class="config-title">❌ Excluded Files</span>
+                            <button class="btn btn-ghost" onclick="saveActiveConfig('ignore_files')">Save as
+                                Default</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value="repoliner_dump.md" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">repoliner_dump.md</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', 'repoliner_dump.md')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value="thumbs.db" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">thumbs.db</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', 'thumbs.db')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value=".env.local" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">.env.local</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', '.env.local')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value="yarn.lock" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">yarn.lock</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', 'yarn.lock')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value="package-lock.json" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">package-lock.json</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', 'package-lock.json')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value="desktop.ini" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">desktop.ini</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', 'desktop.ini')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value=".env" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">.env</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', '.env')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value=".ds_store" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">.ds_store</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', '.ds_store')">×</button>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" data-value="pnpm-lock.yaml" class="file-checkbox">
+                            <span class="tree-icon">📄</span>
+                            <span class="list-item-label" style="color:var(--text-muted)">pnpm-lock.yaml</span>
+                            <button class="btn btn-ghost" style="padding:2px 6px;opacity:0.3;"
+                                onclick="removeConfigItem('ignore_files', 'pnpm-lock.yaml')">×</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast"></div>
+
+        <!-- ════════════════════════ ACTION BAR ════════════════════════ -->
+        <div class="action-bar">
+            <div class="mode-selector">
+                <label class="mode-option selected" id="modeFolder" onclick="selectMode('folder')">
+                    <input type="radio" name="mode" value="folder" checked="">
+                    📁 Standard Output
+                </label>
+                <label class="mode-option" id="modeDump" onclick="selectMode('dump')">
+                    <input type="radio" name="mode" value="dump">
+                    📥 Dump to Folder
+                </label>
+            </div>
+
+            <div class="action-spacer"></div>
+
+            <div class="action-group">
+                <button class="btn" onclick="openFolder('output')">📁 Open Output</button>
+                <button class="btn" onclick="openFolder('project')">📁 Open Project</button>
+                <button class="btn btn-success" id="btnMerge" onclick="runMerge()">
+                    ▶ Generate
+                </button>
+            </div>
+        </div>
+
+        <!-- ════════════════════════ RESULT PANEL ════════════════════════ -->
+        <div class="result-panel" id="resultPanel">
+            <div class="result-header">
+                <span id="resultIcon">✅</span>
+                <h3 id="resultTitle">Merge Complete</h3>
+            </div>
+            <div class="result-stats" id="resultStats"></div>
+            <div class="token-bar" id="tokenBar"></div>
+
+            <!-- NEW: Final Summary Tree Container -->
+            <div class="result-tree-container" id="resultTreeContainer"
+                style="display: none; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+                <h4 style="font-size: 0.85rem; margin-bottom: 8px; color: var(--text-secondary);">Final Included Tree
+                </h4>
+                <pre id="resultTree"
+                    style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.75rem; overflow-x: auto; max-height: 300px; overflow-y: auto; color: var(--text-primary); border: 1px solid var(--border);"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+
+
+
+</body>
+
+</html>

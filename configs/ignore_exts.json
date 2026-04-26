@@ -1,0 +1,14 @@
+[
+    ".exe",
+    ".dll",
+    ".so",
+    ".dylib",
+    ".pyc",
+    ".pyo",
+    ".pyd",
+    ".db",
+    ".sqlite",
+    ".log",
+    ".tmp",
+    ".temp"
+]
