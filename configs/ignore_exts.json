@@ -10,5 +10,7 @@
     ".sqlite",
     ".log",
     ".tmp",
-    ".temp"
+    ".temp",
+    ".ext",
+    ".sample"
 ]
