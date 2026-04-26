@@ -35,139 +35,6 @@ def get_current_config():
     return get_full_config()
 
 
-def scan_directory_tree(target_dir):
-    """
-    Walk the target directory and return:
-      - Full tree (unfiltered, for the UI)
-      - All discovered file extensions
-      - Gitignore patterns
-    """
-    liner = RepoLiner(target_dir)
-    config = liner.config
-    lang_map = config["lang_map"]
-    ignore_dirs_set = set(d.lower() for d in config["ignore_dirs"])
-    ignore_files_set = set(f.lower() for f in config["ignore_files"])
-    gitignore_patterns = liner.gitignore_patterns
-    
-    all_extensions = set()
-    all_dirs = set()
-
-    def walk_node(dir_path, rel_prefix=""):
-        children = []
-        try:
-            entries = sorted(os.listdir(dir_path), key=lambda x: (not os.path.isdir(os.path.join(dir_path, x)), x.lower()))
-        except PermissionError:
-            return children
-
-        for entry in entries:
-            full_path = os.path.join(dir_path, entry)
-            rel_path = os.path.join(rel_prefix, entry) if rel_prefix else entry
-
-            if os.path.isdir(full_path):
-                # Determine exclusion reason
-                entry_lower = entry.lower()
-                
-                rules = [
-                    {"name": "Manual Override", "status": "not_set"},
-                    {"name": ".gitignore", "status": "not_matched"},
-                    {"name": "Global Config", "status": "not_matched"}
-                ]
-
-                excluded = False
-                reason = None
-
-                if liner._should_ignore(entry):
-                    excluded = True
-                    reason = "gitignore"
-                    rules[1]["status"] = "matched"
-                
-                if entry_lower in ignore_dirs_set:
-                    excluded = True
-                    reason = "repoliner_config"
-                    rules[2]["status"] = "matched"
-
-                all_dirs.add(entry_lower)
-
-                node = {
-                    "name": entry,
-                    "path": rel_path.replace("\\", "/"),
-                    "type": "dir",
-                    "excluded": excluded,
-                    "reason": reason,
-                    "rules": rules,
-                    "children": [] if excluded else walk_node(full_path, rel_path),
-                }
-                children.append(node)
-            else:
-                # File
-                ext = os.path.splitext(entry)[1].lower()
-                if ext:
-                    all_extensions.add(ext)
-
-                entry_lower = entry.lower()
-                
-                rules = [
-                    {"name": "Manual Override", "status": "not_set"},
-                    {"name": ".gitignore", "status": "not_matched"},
-                    {"name": "Global Config", "status": "not_matched"},
-                    {"name": "Extension", "status": "supported" if ext in lang_map else "unsupported"}
-                ]
-
-                excluded = False
-                reason = None
-
-                if liner._should_ignore(entry):
-                    excluded = True
-                    reason = "gitignore"
-                    rules[1]["status"] = "matched"
-                
-                if entry_lower in ignore_files_set:
-                    excluded = True
-                    reason = "repoliner_config"
-                    rules[2]["status"] = "matched"
-                elif ext and ext not in lang_map:
-                    excluded = True
-                    reason = "extension_not_supported"
-
-                node = {
-                    "name": entry,
-                    "path": rel_path.replace("\\", "/"),
-                    "type": "file",
-                    "ext": ext,
-                    "excluded": excluded,
-                    "reason": reason,
-                    "rules": rules,
-                }
-                children.append(node)
-
-        return children
-
-    tree = walk_node(target_dir)
-
-    # Categorize extensions
-    supported_exts = set(lang_map.keys())
-    all_ext_list = sorted(all_extensions)
-
-    included_extensions = [e for e in all_ext_list if e in supported_exts]
-    excluded_extensions = [e for e in all_ext_list if e not in supported_exts]
-
-    # Categorize directories
-    all_dirs_list = sorted(all_dirs)
-    included_dirs = [d for d in all_dirs_list if d not in ignore_dirs_set]
-    excluded_dirs = [d for d in all_dirs_list if d in ignore_dirs_set]
-
-    return {
-        "project_name": os.path.basename(os.path.normpath(target_dir)),
-        "tree": tree,
-        "gitignore_patterns": gitignore_patterns,
-        "all_extensions": all_ext_list,
-        "included_extensions": included_extensions,
-        "excluded_extensions": excluded_extensions,
-        "lang_map": lang_map,
-        "included_dirs": included_dirs,
-        "excluded_dirs": excluded_dirs,
-        "ignore_files": list(config["ignore_files"]),
-    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -227,7 +94,8 @@ def scan_project():
         return jsonify({"success": False, "error": "Invalid directory path"}), 400
 
     try:
-        result = scan_directory_tree(path)
+        liner = RepoLiner(path)
+        result = liner.scan()
         result["success"] = True
         return jsonify(result)
     except Exception as e:

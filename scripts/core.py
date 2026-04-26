@@ -133,17 +133,23 @@ class RepoLiner:
             if rel_root == ".":
                 rel_root = ""
 
-            # Filter directories
-            new_dirs = []
-            for d in dirs:
-                rel_path = os.path.join(rel_root, d).replace("\\", "/")
-                if not self._is_path_ignored(rel_path, is_dir=True):
-                    new_dirs.append(d)
-                elif rel_path in self.manually_included:
-                    # Even if ignored by config/.gitignore, if manually included, traverse it
-                    new_dirs.append(d)
-            
-            dirs[:] = new_dirs
+            # Filter directories based on a more robust check
+            original_dirs = list(dirs) # Make a copy to iterate over
+            dirs[:] = [] # Clear the list we will modify
+
+            for d in original_dirs:
+                rel_dir_path = os.path.join(rel_root, d).replace("\\", "/")
+                
+                # Check if any manually included path is a sub-path of this directory
+                should_traverse_for_override = any(
+                    inc_path.startswith(rel_dir_path + '/') for inc_path in self.manually_included
+                )
+
+                # If the directory itself is not ignored, or we must traverse it
+                # to find a manually included child, then keep it.
+                if not self._is_path_ignored(rel_dir_path, is_dir=True) or should_traverse_for_override:
+                    dirs.append(d)
+
             yield root, dirs, files
 
     def generate_tree_text(self):
@@ -178,8 +184,153 @@ class RepoLiner:
                 
                 tree_lines.append(f"{subindent}{f}")
 
-        tree_lines.append("```")
-        return "\n".join(tree_lines)
+    def scan(self):
+        """
+        Scans the target directory and builds a tree structure with full rule info.
+        This is the single source of truth for the project structure.
+        """
+        all_extensions = set()
+        all_dirs = set()
+
+        def get_rules(rel_path, is_dir=False, ext=None):
+            # This helper builds the rule object for the frontend inspector
+            path_norm = rel_path.replace("\\", "/")
+            name = os.path.basename(path_norm)
+            
+            rules = [
+                {"name": "Manual Override", "status": "not_set"},
+                {"name": ".gitignore", "status": "not_matched"},
+                {"name": "Global Config", "status": "not_matched"}
+            ]
+            
+            if not is_dir:
+                rules.append({"name": "Extension", "status": "supported" if ext in self.lang_map else "unsupported"})
+
+            if path_norm in self.manually_included:
+                rules[0]["status"] = "included"
+            elif path_norm in self.manually_excluded:
+                rules[0]["status"] = "excluded"
+
+            for pattern in self.gitignore_patterns:
+                if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(path_norm, pattern):
+                    rules[1]["status"] = "matched"
+                    break
+            
+            if is_dir:
+                if name.lower() in self.ignore_dirs:
+                    rules[2]["status"] = "matched"
+            else:
+                if name.lower() in self.ignore_files:
+                    rules[2]["status"] = "matched"
+            
+            return rules
+
+        def walk_node(dir_path, rel_prefix=""):
+            children = []
+            try:
+                entries = sorted(os.listdir(dir_path), key=lambda x: (not os.path.isdir(os.path.join(dir_path, x)), x.lower()))
+            except PermissionError:
+                return children
+
+            for entry in entries:
+                full_path = os.path.join(dir_path, entry)
+                rel_path = os.path.join(rel_prefix, entry) if rel_prefix else entry
+                rel_path_norm = rel_path.replace("\\", "/")
+
+                if os.path.isdir(full_path):
+                    entry_lower = entry.lower()
+                    rules = get_rules(rel_path_norm, is_dir=True)
+                    
+                    # Determine exclusion status
+                    excluded = False
+                    reason = None
+                    if rules[1]["status"] == "matched":
+                        excluded = True
+                        reason = "gitignore"
+                    elif rules[2]["status"] == "matched":
+                        excluded = True
+                        reason = "repoliner_config"
+                    
+                    if rules[0]["status"] == "included":
+                        excluded = False
+                    elif rules[0]["status"] == "excluded":
+                        excluded = True
+
+                    all_dirs.add(entry_lower)
+
+                    node = {
+                        "name": entry,
+                        "path": rel_path_norm,
+                        "type": "dir",
+                        "excluded": excluded,
+                        "reason": reason,
+                        "rules": rules,
+                        "children": walk_node(full_path, rel_path),
+                    }
+                    children.append(node)
+                else:
+                    # File
+                    ext = os.path.splitext(entry)[1].lower()
+                    if ext:
+                        all_extensions.add(ext)
+
+                    rules = get_rules(rel_path_norm, is_dir=False, ext=ext)
+                    
+                    excluded = False
+                    reason = None
+                    if rules[1]["status"] == "matched":
+                        excluded = True
+                        reason = "gitignore"
+                    elif rules[2]["status"] == "matched":
+                        excluded = True
+                        reason = "repoliner_config"
+                    elif rules[3]["status"] == "unsupported":
+                        excluded = True
+                        reason = "extension_not_supported"
+
+                    if rules[0]["status"] == "included":
+                        excluded = False
+                    elif rules[0]["status"] == "excluded":
+                        excluded = True
+
+                    node = {
+                        "name": entry,
+                        "path": rel_path_norm,
+                        "type": "file",
+                        "ext": ext,
+                        "excluded": excluded,
+                        "reason": reason,
+                        "rules": rules,
+                    }
+                    children.append(node)
+
+            return children
+
+        tree = walk_node(self.target_dir)
+
+        # Categorize extensions
+        supported_exts = set(self.lang_map.keys())
+        all_ext_list = sorted(all_extensions)
+        included_extensions = [e for e in all_ext_list if e in supported_exts]
+        excluded_extensions = [e for e in all_ext_list if e not in supported_exts]
+
+        # Categorize directories
+        all_dirs_list = sorted(all_dirs)
+        included_dirs = [d for d in all_dirs_list if d not in self.ignore_dirs]
+        excluded_dirs = [d for d in all_dirs_list if d in self.ignore_dirs]
+
+        return {
+            "project_name": os.path.basename(os.path.normpath(self.target_dir)),
+            "tree": tree,
+            "gitignore_patterns": self.gitignore_patterns,
+            "all_extensions": all_ext_list,
+            "included_extensions": included_extensions,
+            "excluded_extensions": excluded_extensions,
+            "lang_map": self.lang_map,
+            "included_dirs": included_dirs,
+            "excluded_dirs": excluded_dirs,
+            "ignore_files": list(self.ignore_files),
+        }
 
     def merge(self, mode="folder"):
         """Performs the merge and returns a status dictionary."""
