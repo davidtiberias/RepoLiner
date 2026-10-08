@@ -111,6 +111,7 @@ def merge_project():
         # Apply UI overrides to the base configuration
         liner.ignore_dirs = set(d.lower() for d in data.get("excluded_dirs", []))
         liner.ignore_files = set(f.lower() for f in data.get("excluded_files", []))
+        liner.ignore_exts = set(e.lower() for e in data.get("ignore_exts", []))
         liner.gitignore_patterns = data.get("gitignore_patterns", [])
         liner.repoignore_patterns = data.get("repoignore_patterns", [])
         included_exts = data.get("included_extensions", [])
@@ -129,16 +130,22 @@ def merge_project():
 
 @app.route("/api/open-folder", methods=["POST"])
 def open_folder():
-    folder = request.get_json().get("path", "").strip()
+    data = request.get_json()
+    folder = data.get("path", "").strip()
+
     if folder == "__output__":
-        liner = RepoLiner(os.getcwd()) # Dummy path to load config
+        liner = RepoLiner(os.getcwd())  # Dummy path to load config
         folder = os.path.join(PROJECT_ROOT, liner.config.get("output_folder", "output"))
+        if not os.path.isdir(folder):
+            os.makedirs(folder, exist_ok=True)
+    elif folder == "__project__":
+        # The frontend should send the currently scanned project path via the 'project_path' key
+        folder = data.get("project_path", "").strip()
+        if not folder or not os.path.isdir(folder):
+            return jsonify({"success": False, "error": "Invalid project directory"})
 
     if not os.path.isdir(folder):
-        if "__output__" in request.get_json().values():
-             os.makedirs(folder, exist_ok=True)
-        else:
-            return jsonify({"success": False, "error": "Directory does not exist"})
+        return jsonify({"success": False, "error": "Directory does not exist"})
 
     try:
         if sys.platform == "win32": os.startfile(folder)

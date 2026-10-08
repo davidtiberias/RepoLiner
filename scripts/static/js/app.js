@@ -112,22 +112,27 @@ async function runMerge() {
 }
 
 async function openFolder(type) {
-    let folderPath = '';
-    if (type === 'output') {
-        folderPath = '__output__';
-    } else {
-        folderPath = document.getElementById('pathInput').value.trim();
-        if (!folderPath) {
+    let payload = {};
+    if (type === '__output__') {
+        payload = { path: '__output__' };
+    } else if (type === '__project__') {
+        const projectPath = document.getElementById('pathInput').value.trim();
+        if (!projectPath) {
             alert('No project path set.');
             return;
         }
+        payload = { path: '__project__', project_path: projectPath };
+    } else {
+        // Legacy fallback: treat as a literal folder path
+        payload = { path: type };
     }
 
     await fetch('/api/open-folder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: folderPath }),
+        body: JSON.stringify(payload),
     });
+
 }
 
 // ═══════════════════════════════════════════════════════════

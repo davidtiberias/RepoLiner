@@ -58,12 +58,12 @@ This is the recommended method for Windows users.
 
 2.  **Create the Project Environment**
 
-    - Once Step 2 is done, double-click on `2-create-environment.bat`.
-    - This script sets up RepoLiner's specific dependencies.
+    - Once Step 1 is done, double-click on `2-create-and-install.bat`.
+    - This script sets up RepoLiner's specific Python environment and installs all dependencies automatically.
 
-3.  **Install Dependencies**
-    - Finally, double-click on `3-install-dependencies-pip.bat`.
-    - This installs all the necessary Python tools like Flake8 and Black into the environment.
+3.  **Verify the Installation**
+    - Optionally, double-click on `3-run-quality-checks.bat`.
+    - This runs Flake8 and Black to confirm the environment is healthy.
 
 ### Method B: Manual Installation (All Platforms)
 
@@ -124,35 +124,48 @@ This method is useful for automation or if you prefer using the terminal.
 
 ## 6. Configuration (Optional)
 
-You can customize RepoLiner's behavior by editing the `CONFIG` dictionary at the top of the `scripts/merge_script.py` file.
+RepoLiner's behavior is controlled by JSON files in the `configs/` folder. You can edit them directly, or use the GUI's built-in tabs.
 
-- **Add a file type:** Add a new entry to the `lang_map` (e.g., `".c": "c",`).
-- **Ignore a directory:** Add the folder name to the `ignore_dirs` list (e.g., `"dist",`).
-- **Ignore a file:** Add the filename to the `ignore_files` list.
+- **Add a file type:** Add a new entry to `configs/extensions.json` (e.g., `".c": "c"`).
+- **Ignore a directory:** Add the folder name to `configs/ignore_dirs.json` (e.g., `"dist"`).
+- **Ignore a file:** Add the filename to `configs/ignore_files.json`.
+- **Ignore an extension:** Add the extension to `configs/ignore_exts.json`.
 
 ## 7. Project Structure
 
 ```
 RepoLiner/
 ├── .gitignore                  # Files to be ignored by Git
-├── .flake8                     # Flake8 rules
+├── .flake8                     # Flake8 linting rules
 ├── .pre-commit-config.yaml     # Pre-commit hook definitions
 ├── LICENSE                     # Project license
 ├── README.md                   # This documentation file
-├── CONTRIBUTING.md             # The contribution guidelines eventho i am not really stick to it ehe
+├── CONTRIBUTING.md             # Contribution guidelines
 │
-├── environment.yml             # (Setup) Project dependencies
+├── environment.yml             # (Setup) Conda environment spec
 ├── 0-initialize-git-repo.bat   # (Setup for Contributors)
 ├── 1-install-miniconda.bat     # (Setup) Installs Miniconda
-├── 2-create-environment.bat    # (Setup) Creates the environment
-├── 3-install-dependencies-pip.bat # (Setup) Installs dependencies
-├── 4-run-quality-checks.bat    # (Utility)
+├── 2-create-and-install.bat    # (Setup) Creates env & installs deps
+├── 3-run-quality-checks.bat    # (Utility) Runs Flake8 + Black
+├── 4-run-pre-commit.bat        # (Utility) Manages pre-commit hooks
 │
 ├── launch.bat                  # The file you run to use the tool
 ├── output/                     # All your merged reports are saved here
 │
+├── configs/                    # JSON configuration files
+│   ├── extensions.json         # Supported file types → language map
+│   ├── ignore_dirs.json        # Directories to always skip
+│   ├── ignore_files.json       # Files to always skip
+│   ├── ignore_exts.json        # Extensions to always skip
+│   └── settings.json           # General settings (e.g. output folder)
+│
 └── scripts/
-    └── merge_script.py         # The core Python logic
+    ├── core.py                 # Core scanning & merging engine
+    ├── merge_cli.py            # Command-line interface
+    ├── gui_server.py           # Flask web-server for the GUI
+    ├── gui.html                # GUI entry point (served by Flask)
+    ├── config_defaults.py      # Built-in default configuration
+    └── static/                 # CSS & JS assets for the GUI
 ```
 
 ## 8. Contributions
@@ -177,13 +190,13 @@ In the spirit of transparency, it's important to be aware of the project's curre
 
   - The one-click setup process is built around Windows batch scripts (`.bat`). While the core Python script is cross-platform, users on **macOS and Linux** must follow the manual installation guide. Future versions aim to include equivalent shell scripts (`.sh`) for these platforms.
 
-- **Configuration Requires Code Editing**
+- **Configuration via JSON Files**
 
-  - To customize the tool (e.g., add new file types or ignore different directories), a user must directly edit the `CONFIG` dictionary inside the `scripts/merge_script.py` file. A key goal on our [roadmap](CHANGELOG.md#unreleased) is to move this to an external `config.yml` file for much easier customization.
+  - RepoLiner's behavior is controlled by JSON files in the `configs/` directory (`extensions.json`, `ignore_dirs.json`, etc.). You can edit them directly in a text editor, or use the built-in GUI tabs. No Python knowledge required.
 
-- **No Graphical User Interface (GUI)**
+- **Full GUI Support**
 
-  - RepoLiner is designed as a command-line and script-based utility for developers and power users. There is currently no graphical interface for selecting folders or changing settings.
+  - RepoLiner ships with an interactive web GUI (served locally via Flask). Use it to visually browse the file tree, toggle inclusions, and run merges with a single click.
 
 - **Assumes Text-Based Source Files**
 

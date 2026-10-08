@@ -183,3 +183,6 @@ cython_debug/
 # Output Folder
 output/
 repoliner_dump.md
+
+# Temporary / scratch files
+frombrowserinspector.html

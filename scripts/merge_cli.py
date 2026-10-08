@@ -32,7 +32,7 @@ def print_token_report(file_stats, total_chars):
         print(f"... and {len(file_stats) - 20} smaller files.")
     print("-" * 50)
 
-    estimated_tokens = estimate_tokens(" " * total_chars)
+    estimated_tokens = estimate_tokens(total_chars)
     print(f"Total Estimated Tokens: ~{estimated_tokens:,}")
 
     if estimated_tokens > 1000000:

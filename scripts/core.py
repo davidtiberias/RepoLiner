@@ -1,5 +1,6 @@
 # scripts/core.py
 import os
+import re
 import json
 import fnmatch
 from datetime import datetime
@@ -104,7 +105,7 @@ class RepoLiner:
             return True, "global_config"
         if not is_dir and name.lower() in self.ignore_files:
             return True, "global_config"
-            
+
         ext = self._get_extension(name) if not is_dir else None
         if ext and ext in self.ignore_exts:
             return True, "global_config"
@@ -112,9 +113,22 @@ class RepoLiner:
         # Check Repoignore first, then Gitignore
         for ignore_type, patterns in [("repoignore", self.repoignore_patterns), ("gitignore", self.gitignore_patterns)]:
             for pattern in patterns:
-                p = pattern[:-1] if pattern.endswith('/') else pattern
-                if pattern.endswith('/') and not is_dir:
+                # Skip negation patterns — they are not implemented and must not match literally
+                if pattern.startswith("!"):
                     continue
+
+                # Strip leading slash from root-relative patterns (e.g. "/site" -> "site")
+                if pattern.startswith("/"):
+                    pattern = pattern[1:]
+
+                # Directory-only patterns (ending in "/"): only match directories
+                if pattern.endswith("/"):
+                    if not is_dir:
+                        continue
+                    p = pattern[:-1]  # strip trailing slash for matching
+                else:
+                    p = pattern
+
                 if fnmatch.fnmatch(name, p) or fnmatch.fnmatch(rel_path, p):
                     return True, ignore_type
 
@@ -141,10 +155,17 @@ class RepoLiner:
 
             for f in files:
                 f_rel = f"{rel_root}/{f}" if rel_root else f
-                
+
+                # Manual exclusion: check the file itself AND every ancestor directory
                 if f_rel in self.manually_excluded:
-                    continue  # Manual exclusion overrides
-                    
+                    continue
+                ancestor_excluded = any(
+                    f_rel.startswith(excl + "/") or f_rel == excl
+                    for excl in self.manually_excluded
+                )
+                if ancestor_excluded:
+                    continue
+
                 is_ignored, _ = self._is_path_ignored_by_base(f_rel, is_dir=False)
                 if not is_ignored:
                     ext = self._get_extension(f)
@@ -164,7 +185,8 @@ class RepoLiner:
                 # Walk it and add its files (still respecting extensions & manual exclusions).
                 for root, _, files in os.walk(full_path):
                     for f in files:
-                        ext = os.path.splitext(f)[1].lower()
+                        # Use _get_extension so dotfiles (.gitignore, .flake8) resolve correctly
+                        ext = self._get_extension(f)
                         if ext in allowed_extensions:
                             f_rel = os.path.relpath(os.path.join(root, f), self.target_dir).replace("\\", "/")
                             if f_rel not in self.manually_excluded:
@@ -341,11 +363,18 @@ class RepoLiner:
                             content = infile.read()
 
                         lang_identifier = self.lang_map.get(file_extension, "text")
+
+                        # Dynamic fence: must be longer than any tilde-run inside the file
+                        # to prevent premature code-block termination.
+                        tilde_runs = re.findall(r"~+", content)
+                        max_run = max((len(r) for r in tilde_runs), default=0)
+                        fence = "~" * max(4, max_run + 1)
+
                         markdown_chunk = (
                             f'\n<file path="{rel_path}">\n'
-                            f"\n~~~~{lang_identifier}\n"
+                            f"\n{fence}{lang_identifier}\n"
                             f"\n{content.strip()}\n"
-                            "\n~~~~\n"
+                            f"\n{fence}\n"
                             "</file>\n\n"
                         )
                         outfile.write(markdown_chunk)

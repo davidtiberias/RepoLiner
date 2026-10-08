@@ -7,8 +7,5 @@
     ".env",
     "desktop.ini",
     "repoliner_dump.md",
-    "yarn.lock",
-    ".DS_Store",
-    "launch.bat",
-    "repoliner_dump.md"
+    "yarn.lock"
 ]

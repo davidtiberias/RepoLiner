@@ -67,7 +67,7 @@ Before you make your first commit, you must install the Git hooks.
 
 1.  Make sure you have completed the main project setup (scripts 0, 1, 2, and 3).
 2.  Navigate to the RepoLiner root directory.
-3.  Double-click the **`5-run-pre-commit.bat`** script.
+3.  Double-click the **`4-run-pre-commit.bat`** script.
 4.  From the menu, choose option **1** to **Install Hooks**.
 
 That's it! The hooks are now active.
@@ -86,7 +86,7 @@ This process ensures that no code that violates our quality standards ever gets 
 
 If you want to run the checks on the entire project at once (for example, after a large refactor), you can:
 
-1.  Run the **`5-run-pre-commit.bat`** script.
+1.  Run the **`4-run-pre-commit.bat`** script.
 2.  Choose option **2** to **Run on All Files**.
 
 ## Pull Request (PR) Guidelines
